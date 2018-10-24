@@ -20,7 +20,7 @@ namespace lightchain.httpserver
         {
             onHttpEvents = new System.Collections.Concurrent.ConcurrentDictionary<string, IController>();
         }
-        private IWebHost host;
+        private WebHostBuilder host;
         public System.Collections.Concurrent.ConcurrentDictionary<string, IController> onHttpEvents;
         onProcessHttp onHttp404;
 
@@ -28,7 +28,8 @@ namespace lightchain.httpserver
 
         public void Start(int port, int portForHttps = 0, string pfxpath = null, string password = null)
         {
-            host = new WebHostBuilder().UseKestrel((options) =>
+            host = new WebHostBuilder();
+            host.UseKestrel((options) =>
             {
                 options.Listen(IPAddress.Any, port, listenOptions =>
                   {
@@ -44,19 +45,18 @@ namespace lightchain.httpserver
                           //sslCert, password);
                       });
                 }
-            }
-            )
-            .Configure(app =>
+            });
+            host.Configure(app =>
             {
                 app.UseWebSockets();
                 app.UseResponseCompression();
                 app.Run(ProcessAsync);
-            })
-            .ConfigureServices(services =>
+            });
+            host.ConfigureServices(services =>
             {
                 services.AddResponseCompression(options =>
                 {
-                    // options.EnableForHttps = false;
+                    options.EnableForHttps = false;
                     options.Providers.Add<GzipCompressionProvider>();
                     //options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json-rpc" });
                 });
@@ -65,8 +65,9 @@ namespace lightchain.httpserver
                 {
                     options.Level = CompressionLevel.Fastest;
                 });
-            })
-            .Build();
+            });
+
+            host.Build();
 
             host.Start();
         }
