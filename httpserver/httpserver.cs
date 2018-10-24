@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
@@ -20,7 +21,7 @@ namespace lightchain.httpserver
         {
             onHttpEvents = new System.Collections.Concurrent.ConcurrentDictionary<string, IController>();
         }
-        private WebHostBuilder host;
+        private IWebHost host;
         public System.Collections.Concurrent.ConcurrentDictionary<string, IController> onHttpEvents;
         onProcessHttp onHttp404;
 
@@ -28,8 +29,7 @@ namespace lightchain.httpserver
 
         public void Start(int port, int portForHttps = 0, string pfxpath = null, string password = null)
         {
-            host = new WebHostBuilder();
-            host.UseKestrel((options) =>
+            host = new WebHostBuilder().UseKestrel((options) =>
             {
                 options.Listen(IPAddress.Any, port, listenOptions =>
                   {
@@ -45,29 +45,25 @@ namespace lightchain.httpserver
                           //sslCert, password);
                       });
                 }
-            });
-            host.Configure(app =>
+            }).Configure(app =>
             {
                 app.UseWebSockets();
                 app.UseResponseCompression();
                 app.Run(ProcessAsync);
-            });
-            host.ConfigureServices(services =>
+            }).ConfigureServices(services =>
             {
                 services.AddResponseCompression(options =>
                 {
                     options.EnableForHttps = false;
                     options.Providers.Add<GzipCompressionProvider>();
-                    //options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json-rpc" });
+                    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
                 });
 
                 services.Configure<GzipCompressionProviderOptions>(options =>
                 {
                     options.Level = CompressionLevel.Fastest;
                 });
-            });
-
-            host.Build();
+            }).Build();
 
             host.Start();
         }
