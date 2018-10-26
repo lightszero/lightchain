@@ -90,6 +90,10 @@ namespace lightchain.httpserver
         {
             onHttpEvents[path] = new ActionController(httpaction);
         }
+        public void SetWebsocketAction(string path, onProcessWebsocket websocketaction)
+        {
+            onHttpEvents[path] = new WebSocketController(websocketaction);
+        }
         public void SetHttpController(string path, IController controller)
         {
             onHttpEvents[path] = controller;
@@ -99,6 +103,13 @@ namespace lightchain.httpserver
             onHttp404 = httpaction;
         }
         public delegate Task onProcessHttp(HttpContext context);
+        public enum WebsocketEventType
+        {
+            Connect,
+            Disconnect,
+            Recieve,
+        }
+        public delegate Task onProcessWebsocket(WebsocketEventType type, System.Net.WebSockets.WebSocket context, byte[] message = null);
 
 
         private async Task ProcessAsync(HttpContext context)

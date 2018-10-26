@@ -29,22 +29,26 @@ namespace httpserver_testor
                 }
                 if (line.ToLower() == "1")
                 {
-                    Task.WaitAll(Test1("http://127.0.0.1:80/test1",100));
+                    Task.WaitAll(Test1("http://127.0.0.1:80/test1", 100));
                 }
                 if (line.ToLower() == "2")
                 {
-                    Task.WaitAll(Test1("http://127.0.0.1:80/test2",10));
+                    Task.WaitAll(Test1("http://127.0.0.1:80/test2", 10));
                 }
                 if (line.ToLower() == "3")
                 {
-                    Task.WaitAll(Test1("http://127.0.0.1:80/test3",3));
+                    Task.WaitAll(Test1("http://127.0.0.1:80/test3", 3));
+                }
+                if (line.ToLower() == "w1")
+                {
+                    Task.WaitAll(TestWS("ws://127.0.0.1:80/ws"));
                 }
             }
         }
 
         static int finishCount = 0;
         static DateTime timer = DateTime.Now;
-        static async Task Test1(string url,int linecount)
+        static async Task Test1(string url, int linecount)
         {
             ThreadPool.SetMaxThreads(1000, 1000);
 
@@ -55,14 +59,14 @@ namespace httpserver_testor
             Task[] tasks = new Task[100];
             for (var line = 0; line < 100; line++)
             {
-                tasks[line]=TestLine(url,linecount);
+                tasks[line] = TestLine(url, linecount);
             }
             Task.WaitAll(tasks);
             Console.WriteLine("http succ=" + finishCount);
             var speed = ((double)finishCount) / (DateTime.Now - begintime).TotalSeconds;
             Console.WriteLine("http speed=" + speed + "tps");
         }
-        static async Task TestLine(string url,int testcount)
+        static async Task TestLine(string url, int testcount)
         {
             //await Task.Delay(500);
             HttpClient http = new HttpClient();
@@ -84,6 +88,22 @@ namespace httpserver_testor
                 {
 
                 }
+            }
+        }
+
+        static async Task TestWS(string url)
+        {
+            System.Net.WebSockets.ClientWebSocket cws = new System.Net.WebSockets.ClientWebSocket();
+            await cws.ConnectAsync(new Uri(url), CancellationToken.None);
+            Console.WriteLine(cws.State);
+            for (var i = 0; i < 100; i++)
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes("hello there.");
+                ArraySegment<byte> sendbuf = bytes;
+                await cws.SendAsync(sendbuf, System.Net.WebSockets.WebSocketMessageType.Binary, true, CancellationToken.None);
+            }
+            while(true)
+            {
             }
         }
     }

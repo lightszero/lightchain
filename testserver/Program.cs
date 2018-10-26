@@ -12,6 +12,8 @@ namespace testserver
             server.SetHttpAction("/test1", onTest01);
             server.SetHttpAction("/test2", onTest02);
             server.SetHttpAction("/test3", onTest03);
+            server.SetWebsocketAction("/ws", onTestWs01);
+
             System.Threading.ThreadPool.SetMaxThreads(1000, 1000);
             server.Start(80);
 
@@ -40,6 +42,23 @@ namespace testserver
         {
             System.Threading.Thread.Sleep(1000);
             await context.Response.WriteAsync("dead.");
+        }
+
+        static async Task onTestWs01(lightchain.httpserver.httpserver.WebsocketEventType type, System.Net.WebSockets.WebSocket socket, byte[] message)
+        {
+            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Connect)
+            {
+                Console.WriteLine("websocket in:" + socket.SubProtocol);
+            }
+            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Recieve)
+            {
+                var txt = System.Text.Encoding.UTF8.GetString(message);
+                Console.WriteLine("websocket read:" + txt);
+            }
+            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Disconnect)
+            {
+                Console.WriteLine("websocket gone:" + socket.CloseStatus + "." + socket.CloseStatusDescription);
+            }
         }
     }
 }
