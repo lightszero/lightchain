@@ -8,7 +8,7 @@ namespace lightchain.httpserver
 {
     public class ActionController : IController
     {
-        public ActionController(httpserver.onProcessHttp action)
+        public ActionController(httpserver.deleProcessHttp action)
         {
             this.action = action;
         }
@@ -16,6 +16,6 @@ namespace lightchain.httpserver
         {
             await action(context);
         }
-        httpserver.onProcessHttp action;
+        httpserver.deleProcessHttp action;
     }
 }

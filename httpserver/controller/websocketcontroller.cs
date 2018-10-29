@@ -9,21 +9,23 @@ namespace lightchain.httpserver
 {
     public class WebSocketController : IController
     {
-
-        httpserver.onProcessWebsocket onEvent;
-        public WebSocketController(httpserver.onProcessWebsocket onEvent)
+        httpserver.deleWebSocketCreator CreatePeer;
+        //httpserver.onProcessWebsocket onEvent;
+        public WebSocketController(httpserver.deleWebSocketCreator onCreator)
         {
-            this.onEvent = onEvent;
+            this.CreatePeer = onCreator;
         }
         public async Task ProcessAsync(HttpContext context)
         {
             if (context.WebSockets.IsWebSocketRequest)
             {
                 WebSocket websocket = null;
+                httpserver.IWebSocketPeer peer = null;
                 try
                 {
                     websocket = await context.WebSockets.AcceptWebSocketAsync();
-                    await onEvent(httpserver.WebsocketEventType.Connect, websocket);
+                    peer = CreatePeer(websocket);
+                    await peer.OnConnect();
                 }
                 catch
                 {
@@ -45,21 +47,21 @@ namespace lightchain.httpserver
                             ms.Read(bytes, 0, (int)count);
 
                             ms.Position = 0;
-                            await onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+                            await peer.OnRecv(bytes);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
                         }
                         //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
                     }
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     Console.WriteLine("error on recv.");
                 }
                 try
                 {
                     //await context.Response.WriteAsync("");
-                    await onEvent(httpserver.WebsocketEventType.Disconnect, websocket);
+                    await peer.OnDisConnect();// onEvent(httpserver.WebsocketEventType.Disconnect, websocket);
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     Console.WriteLine("error on disconnect.");
                 }

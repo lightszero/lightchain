@@ -12,7 +12,7 @@ namespace testserver
             server.SetHttpAction("/test1", onTest01);
             server.SetHttpAction("/test2", onTest02);
             server.SetHttpAction("/test3", onTest03);
-            server.SetWebsocketAction("/ws", onTestWs01);
+            server.SetWebsocketAction("/ws", (socket)=> new websockerPeer(socket));
 
             System.Threading.ThreadPool.SetMaxThreads(1000, 1000);
             server.Start(80);
@@ -43,21 +43,28 @@ namespace testserver
             System.Threading.Thread.Sleep(1000);
             await context.Response.WriteAsync("dead.");
         }
-
-        static async Task onTestWs01(lightchain.httpserver.httpserver.WebsocketEventType type, System.Net.WebSockets.WebSocket socket, byte[] message)
+        public class websockerPeer : lightchain.httpserver.httpserver.IWebSocketPeer
         {
-            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Connect)
+            System.Net.WebSockets.WebSocket websocket;
+            public websockerPeer(System.Net.WebSockets.WebSocket websocket)
             {
-                Console.WriteLine("websocket in:" + socket.SubProtocol);
+                this.websocket = websocket;
             }
-            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Recieve)
+            public async Task OnConnect()
+            {
+                Console.WriteLine("websocket in:" + websocket.SubProtocol);
+            }
+
+            public async Task OnDisConnect()
+            {
+                Console.WriteLine("websocket gone:" + websocket.CloseStatus + "." + websocket.CloseStatusDescription);
+
+            }
+
+            public async Task OnRecv(byte[] message)
             {
                 var txt = System.Text.Encoding.UTF8.GetString(message);
                 Console.WriteLine("websocket read:" + txt);
-            }
-            if (type == lightchain.httpserver.httpserver.WebsocketEventType.Disconnect)
-            {
-                Console.WriteLine("websocket gone:" + socket.CloseStatus + "." + socket.CloseStatusDescription);
             }
         }
     }

@@ -23,7 +23,7 @@ namespace lightchain.httpserver
         }
         private IWebHost host;
         public System.Collections.Concurrent.ConcurrentDictionary<string, IController> onHttpEvents;
-        onProcessHttp onHttp404;
+        deleProcessHttp onHttp404;
 
 
 
@@ -86,11 +86,11 @@ namespace lightchain.httpserver
             var jsonc = onHttpEvents[path] as JSONRPCController;
             jsonc.SetFailAction(action);
         }
-        public void SetHttpAction(string path, onProcessHttp httpaction)
+        public void SetHttpAction(string path, deleProcessHttp httpaction)
         {
             onHttpEvents[path] = new ActionController(httpaction);
         }
-        public void SetWebsocketAction(string path, onProcessWebsocket websocketaction)
+        public void SetWebsocketAction(string path, deleWebSocketCreator websocketaction)
         {
             onHttpEvents[path] = new WebSocketController(websocketaction);
         }
@@ -98,18 +98,25 @@ namespace lightchain.httpserver
         {
             onHttpEvents[path] = controller;
         }
-        public void SetFailAction(onProcessHttp httpaction)
+        public void SetFailAction(deleProcessHttp httpaction)
         {
             onHttp404 = httpaction;
         }
-        public delegate Task onProcessHttp(HttpContext context);
-        public enum WebsocketEventType
+        public delegate Task deleProcessHttp(HttpContext context);
+        public interface IWebSocketPeer
         {
-            Connect,
-            Disconnect,
-            Recieve,
+            Task OnConnect();
+            Task OnRecv(byte[] message);
+            Task OnDisConnect();
         }
-        public delegate Task onProcessWebsocket(WebsocketEventType type, System.Net.WebSockets.WebSocket context, byte[] message = null);
+        public delegate IWebSocketPeer deleWebSocketCreator(System.Net.WebSockets.WebSocket websocket);
+        //public enum WebsocketEventType
+        //{
+        //    Connect,
+        //    Disconnect,
+        //    Recieve,
+        //}
+        //public delegate Task onProcessWebsocket(WebsocketEventType type, System.Net.WebSockets.WebSocket context, byte[] message = null);
 
 
         private async Task ProcessAsync(HttpContext context)

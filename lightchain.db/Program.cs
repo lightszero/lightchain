@@ -36,6 +36,7 @@ namespace lightchain.db
         }
         static void InitMenu()
         {
+            AddMenu("exit", "exit application", (words) => { Environment.Exit(0); });
             AddMenu("help", "show help", ShowMenu);
             AddMenu("db.test", "db [num] dbtest program", DBTest);
         }
@@ -79,13 +80,13 @@ namespace lightchain.db
         static void DBTest(string[] words)
         {
             Console.WriteLine("do db test.");
-            if(words.Length<2)
+            if (words.Length < 2)
             {
                 Console.WriteLine("need a number. type \"db.test 1\"");
                 return;
             }
             var n = int.Parse(words[1]);
-            if(n==1)
+            if (n == 1)
             {
                 WriteBlock wblock = new WriteBlock();
                 //wblock.ops.Add(new WriteOp_CreateTable());
