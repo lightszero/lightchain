@@ -105,8 +105,8 @@ namespace lightchain.db
         public void WriteBlock(WriteBlock block)
         {
             RocksDbSharp.WriteBatch wb = new RocksDbSharp.WriteBatch();
-
         }
+        
         public object GetTableInfo(SnapShotInfo snapshot, byte[] key)
         {
             return null;
@@ -118,10 +118,8 @@ namespace lightchain.db
         }
         public DBValue GetSystemValue(SnapShotInfo snapshot, byte[] key)
         {
-
-            byte[] finialkey = Helper.CalcKey(HeadSystem, key);
-            var value = this.db.Get(finialkey, null, snapshot?.readop);
-            return value == null ? null : DBValue.FromRaw(value);
+            var value = GetValue(snapshot,HeadSystem,key);
+            return DBValue.FromRaw(value);
         }
         public byte[] GetValue(SnapShotInfo snapshot, byte[] table, byte[] key)
         {

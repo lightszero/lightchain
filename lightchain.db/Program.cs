@@ -38,7 +38,9 @@ namespace lightchain.db
         {
             AddMenu("exit", "exit application", (words) => { Environment.Exit(0); });
             AddMenu("help", "show help", ShowMenu);
-            AddMenu("db.test", "db [num] dbtest program", DBTest);
+            AddMenu("test.db", "db [num] dbtest program", DBTest);
+            AddMenu("test.other.1", "test num", Other1);
+
         }
         static void ShowMenu(string[] words = null)
         {
@@ -89,6 +91,13 @@ namespace lightchain.db
             if (n == 1)
             {
                 WriteBlock wblock = new WriteBlock();
+                for (var i = 0; i < 10; i++)
+                {
+                    var tablehead = new byte[] { 1, (byte)i };
+                    wblock.ops.Add(new WriteOp_CreateTable(tablehead, "testtable" + i, "testtable", DBValue.Type.String));
+                    db.WriteBlock(wblock);
+                }
+               
                 //wblock.ops.Add(new WriteOp_CreateTable());
                 //for (var i=0;i<1000000;i++)
                 //{
@@ -96,6 +105,21 @@ namespace lightchain.db
                 //   rb.Put()
                 //}
             }
+        }
+        static void Other1(string[] words)
+        {
+            Console.WriteLine("other1");
+            byte[] data = new byte[] { 1, 2, 3 };
+            byte[] data2 = new byte[] { 1, 2, 3, 4, 5 };
+            var num1 = new System.Numerics.BigInteger(data);
+            var num2 = new System.Numerics.BigInteger(data2);
+            var num3 = new System.Numerics.BigInteger(data);
+            var num4= new System.Numerics.BigInteger(data2);
+            Console.WriteLine("num1=" + num1.ToString("X") + " hash=" + num1.GetHashCode().ToString("X"));
+            Console.WriteLine("num2=" + num2.ToString("X") + " hash=" + num2.GetHashCode().ToString("X"));
+            Console.WriteLine("num3=" + num3.ToString("X") + " hash=" + num3.GetHashCode().ToString("X"));
+            Console.WriteLine("num4=" + num4.ToString("X") + " hash=" + num4.GetHashCode().ToString("X"));
+
         }
 
     }

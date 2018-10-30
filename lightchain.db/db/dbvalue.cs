@@ -90,6 +90,8 @@ namespace lightchain.db
         }
         public static DBValue FromRaw(byte[] data)
         {
+            if (data == null)
+                return null;
             DBValue v = new DBValue();
             //read type
             v.type = (Type)data[0];

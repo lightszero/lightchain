@@ -93,14 +93,19 @@ namespace lightchain.db
     {
         public string blockid;
         public ulong SnapshotHeight;//提供快照高度，然后让WriteBatch 只有一个
-        public List<IWriteOp> ops;
+        public List<IWriteOp> ops = new List<IWriteOp>();
         public void Pack(System.IO.Stream stream)
         {
-            throw new NotImplementedException();
         }
-        public WriteBlock UnPack(System.IO.Stream stream)
+        public static WriteBlock UnPack(System.IO.Stream stream)
         {
             return null;
+        }
+        public byte[] ToBytes()
+        {
+            System.IO.MemoryStream ms = new System.IO.MemoryStream();
+            this.Pack(ms);
+            return ms.ToArray();
         }
     }
 }
