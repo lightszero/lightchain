@@ -16,7 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "thinsdk.neo", "thinsdk.neo\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightchain", "lightchain\lightchain.csproj", "{5476310B-C93E-4C9C-89C4-5D18F5D7D30F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lightchain.db", "lightchain.db\lightchain.db.csproj", "{91E45BE4-069F-4ABB-85B3-B8A028687B98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightchain.db", "lightchain.db\lightchain.db.csproj", "{91E45BE4-069F-4ABB-85B3-B8A028687B98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lightchain.db.test", "lightchain.db.test\lightchain.db.test.csproj", "{950406DD-26F9-4949-8188-4809EF0D9E0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{91E45BE4-069F-4ABB-85B3-B8A028687B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91E45BE4-069F-4ABB-85B3-B8A028687B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91E45BE4-069F-4ABB-85B3-B8A028687B98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{950406DD-26F9-4949-8188-4809EF0D9E0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{950406DD-26F9-4949-8188-4809EF0D9E0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{950406DD-26F9-4949-8188-4809EF0D9E0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{950406DD-26F9-4949-8188-4809EF0D9E0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

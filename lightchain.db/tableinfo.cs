@@ -20,7 +20,22 @@ namespace lightchain.db
 
         public void Pack(System.IO.Stream stream)
         {
-            throw new NotImplementedException();
+            if(tablehead.Length>255)
+                throw new Exception("tablehead.Length>255");
+            byte[] __tablename = System.Text.Encoding.UTF8.GetBytes(tablename);
+            if (__tablename.Length > 255)
+                throw new Exception("tablename.Length>255");
+            byte[] __tabledesc = System.Text.Encoding.UTF8.GetBytes(tabledesc);
+            if (__tabledesc.Length > 255)
+                throw new Exception("tabledesc.Length>255");
+
+            stream.WriteByte((byte)tablehead.Length);
+            stream.Write(tablehead, 0, tablehead.Length);
+            stream.WriteByte((byte)__tablename.Length);
+            stream.Write(__tablename, 0, __tablename.Length);
+            stream.WriteByte((byte)__tabledesc.Length);
+            stream.Write(__tabledesc, 0, __tabledesc.Length);
+            stream.WriteByte((byte)keytype);
         }
         public static TableInfo UnPack(System.IO.Stream stream)
         {
@@ -29,6 +44,22 @@ namespace lightchain.db
             string desc = null;
             DBValue.Type keytype = DBValue.Type.BigNumber;
             TableInfo table = new TableInfo(head, name, desc, keytype);
+            byte[] buf = new byte[255];
+            stream.Read(buf, 0, 1);
+            table.tablehead = new byte[buf[0]];
+            stream.Read(table.tablehead, 0, table.tablehead.Length);
+            stream.Read(buf, 0, 1);
+            var strlen = buf[0];
+            stream.Read(buf, 0, strlen);
+            table.tablename = System.Text.Encoding.UTF8.GetString(buf, 0, strlen);
+            stream.Read(buf, 0, 1);
+            strlen = buf[0];
+            stream.Read(buf, 0, strlen);
+            table.tabledesc = System.Text.Encoding.UTF8.GetString(buf, 0, strlen);
+
+            stream.Read(buf, 0, 1);
+            table.keytype = (DBValue.Type)buf[0];
+
             return table;
         }
         public byte[] ToBytes()

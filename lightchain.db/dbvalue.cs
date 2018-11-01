@@ -6,7 +6,7 @@ namespace lightchain.db
 {
     public class DBValue
     {
-        public enum Type
+        public enum Type : byte
         {
             Deleted,//如果value是这个值，表示该值已经被删除了
             Bytes,

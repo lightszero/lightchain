@@ -12,11 +12,32 @@ namespace lightchain.db
     }
     public static class Helper
     {
-        public static byte[] ToBytes(this string str)
+        public static byte[] ToBytes_UTF8Decode(this string str)
         {
             return System.Text.Encoding.UTF8.GetBytes(str);
         }
-
+        public static byte[] ToBytes_HexParse(this string str)
+        {
+            if (str.IndexOf("0x") == 0 || str.IndexOf("0X") == 0)
+            {
+                str = str.Substring(2);
+            }
+            byte[] data = new byte[str.Length / 2];
+            for (var i = 0; i < str.Length / 2; i++)
+            {
+                data[i] = byte.Parse(str.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+            }
+            return data;
+        }
+        public static string ToHexString(this byte[] data)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var b in data)
+            {
+                sb.Append(b.ToString("x02"));
+            }
+            return sb.ToString();
+        }
 
         public static byte[] CalcKey(byte[] head, byte[] key, SplitWord splitWord = SplitWord.TableItem)
         {
