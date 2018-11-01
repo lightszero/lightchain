@@ -120,7 +120,21 @@ namespace lightchain.db.test
         }
         static void test_db_tabledelete(string[] words)
         {
+            try
+            {
+                Console.WriteLine("test db table");
+                using (var snap = db.CreateSnapInfo())
+                {
+                    var writebatch = db.CreateWriteBatch(snap);
 
+                    writebatch.DeleteTable(new byte[] { 0x01, 0x02, 0x03 });
+                    db.Write(writebatch);
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("error:" + err.Message);
+            }
         }
         public static System.Collections.Generic.Dictionary<string, Action<string[]>> menuItem = new System.Collections.Generic.Dictionary<string, Action<string[]>>();
         public static System.Collections.Generic.Dictionary<string, string> menuDesc = new System.Collections.Generic.Dictionary<string, string>();

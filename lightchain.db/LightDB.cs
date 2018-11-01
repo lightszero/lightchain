@@ -46,6 +46,8 @@ namespace lightchain.db
         {
             var tablekey = Helper.CalcKey(tablehead, null, SplitWord.TableInfo);
             var data = this.db.Get(tablekey, null, readop);
+            if (data == null)
+                return null;
             return TableInfo.FromRaw(data);
         }
         public uint GetTableCount(byte[] tablehead)
