@@ -40,7 +40,7 @@ namespace lightchain.db
         {
             var beginkey = Helper.CalcKey(tablehead, _beginkey);
             var endkey = Helper.CalcKey(tablehead, _endkey);
-            return new TableIterator(this, beginkey, endkey);
+            return new TableIterator(this, tablehead, beginkey, endkey);
         }
         public TableInfo GetTableInfo(byte[] tablehead)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace lightchain.db
@@ -10,15 +11,17 @@ namespace lightchain.db
         public TableKeyFinder(SnapShot _snapshot, byte[] tablehead, byte[] _beginkey, byte[] _endkey)
         {
             this.snapshot = _snapshot;
-            this.beginkey = Helper.CalcKey(tablehead, _beginkey);
-            this.endkey = Helper.CalcKey(tablehead, _endkey);
+            this.tablehead = tablehead;
+            this.beginkeyfinal = Helper.CalcKey(tablehead, _beginkey);
+            this.endkeyfinal = Helper.CalcKey(tablehead, _endkey);
         }
         SnapShot snapshot;
-        byte[] beginkey;
-        byte[] endkey;
+        byte[] tablehead;
+        byte[] beginkeyfinal;
+        byte[] endkeyfinal;
         public IEnumerator<byte[]> GetEnumerator()
         {
-            return new TableIterator(snapshot, beginkey, endkey);
+            return new TableIterator(snapshot, tablehead, beginkeyfinal, endkeyfinal);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -28,24 +31,26 @@ namespace lightchain.db
     }
     public class TableIterator : IEnumerator<byte[]>
     {
-        public TableIterator(SnapShot snapshot, byte[] _beginkey, byte[] _endkey)
+        public TableIterator(SnapShot snapshot, byte[] tablehead, byte[] _beginkeyfinal, byte[] _endkeyfinal)
         {
             this.it = snapshot.db.NewIterator(null, snapshot.readop);
-            this.beginkey = _beginkey;
-            this.endkey = _endkey;
+            this.tablehead = tablehead;
+            this.beginkeyfinal = _beginkeyfinal;
+            this.endkeyfinal = _endkeyfinal;
             //this.Reset();
 
         }
         bool bInit = false;
         RocksDbSharp.Iterator it;
-        byte[] beginkey;
-        byte[] endkey;
+        byte[] tablehead;
+        byte[] beginkeyfinal;
+        byte[] endkeyfinal;
         public byte[] Current
         {
             get
             {
                 if (this.Vaild)
-                    return it.Key();
+                    return it.Key().Skip(this.tablehead.Length + 2).ToArray();
                 else
                     return null;
             }
@@ -66,11 +71,11 @@ namespace lightchain.db
         }
         public bool TestVaild(byte[] data)
         {
-            if (data.Length < this.endkey.Length)
+            if (data.Length < this.endkeyfinal.Length)
                 return false;
-            for (var i = 0; i < endkey.Length; i++)
+            for (var i = 0; i < endkeyfinal.Length; i++)
             {
-                if (data[i] != this.endkey[i])
+                if (data[i] != this.endkeyfinal[i])
                     return false;
             }
             return true;
@@ -80,7 +85,7 @@ namespace lightchain.db
             if (bInit == false)
             {
                 bInit = true;
-                it.Seek(beginkey);
+                it.Seek(beginkeyfinal);
             }
             else
             {
@@ -94,7 +99,7 @@ namespace lightchain.db
 
         public void Reset()
         {
-            it.Seek(beginkey);
+            it.Seek(beginkeyfinal);
             bInit = false;
             this.Vaild = false;
         }
