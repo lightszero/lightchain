@@ -48,7 +48,7 @@ namespace lightchain.db
             var data = this.db.Get(tablekey, null, readop);
             if (data == null)
                 return null;
-            return TableInfo.FromRaw(data);
+            return TableInfo.FromRaw(DBValue.FromRaw(data).value);
         }
         public uint GetTableCount(byte[] tablehead)
         {

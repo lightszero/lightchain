@@ -52,21 +52,23 @@ namespace lightchain.db.test
 
                 using (var snap = db.CreateSnapInfo())
                 {
-                    var writebatch = db.CreateWriteBatch(snap);
-                    var info = new lightchain.db.TableInfo(
-                        new byte[] { 0x01, 0x02, 0x03 },//tablehead 是区分表格的数据，至少长度2，太短的不允许
-                                                        //下面三个参数都是提供表的信息，无所谓什么
-                        "mytable",//tablename 
-                        "testtable0001",//tabledesc
-                        DBValue.Type.String//tablekeytype
-                        );
-                    writebatch.CreateTable(info);
-
-                    for (var i = 0; i < 100; i++)
+                    using (var writebatch = db.CreateWriteBatch(snap))
                     {
-                        var key = ("key" + i).ToBytes_UTF8Decode();
-                        writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
-                        db.Write(writebatch);
+                        var info = new lightchain.db.TableInfo(
+                            new byte[] { 0x01, 0x02, 0x03 },//tablehead 是区分表格的数据，至少长度2，太短的不允许
+                                                            //下面三个参数都是提供表的信息，无所谓什么
+                            "mytable",//tablename 
+                            "testtable0001",//tabledesc
+                            DBValue.Type.String//tablekeytype
+                            );
+                        writebatch.CreateTable(info);
+
+                        for (var i = 0; i < 100; i++)
+                        {
+                            var key = ("key" + i).ToBytes_UTF8Decode();
+                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
+                            db.Write(writebatch);
+                        }
                     }
                 }
                 Console.WriteLine("create table and write 100 item.");
@@ -85,13 +87,24 @@ namespace lightchain.db.test
 
                 using (var snap = db.CreateSnapInfo())
                 {
-                    var writebatch = db.CreateWriteBatch(snap);
-                    for (var i = 0; i < 100; i++)
+                    using (var writebatch = db.CreateWriteBatch(snap))
                     {
-                        var key = ("key" + i).ToBytes_UTF8Decode();
-                        writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
+                        //写100个uint32
+                        for (var i = 0; i < 100; i++)
+                        {
+                            var key = ("key" + i).ToBytes_UTF8Decode();
+                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
+                        }
+                        //写100个字符串
+                        for (var i = 0; i < 100; i++)
+                        {
+                            var key = ("skey" + i).ToBytes_UTF8Decode();
+                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.String, "abcdefg" + i));
+                        }
+
                         db.Write(writebatch);
                     }
+
                 }
             }
             catch (Exception err)
