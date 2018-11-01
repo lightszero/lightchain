@@ -81,7 +81,7 @@ namespace lightchain.db
         }
         public byte[] GetDataFinal(byte[] finalkey)
         {
-            var hexkey = finalkey.ToHexString();
+            var hexkey = finalkey.ToString_Hex();
             if (cache.ContainsKey(hexkey))
             {
                 return cache[hexkey];
@@ -95,13 +95,13 @@ namespace lightchain.db
         }
         private void PutDataFinal(byte[] finalkey, byte[] value)
         {
-            var hexkey = finalkey.ToHexString();
+            var hexkey = finalkey.ToString_Hex();
             cache[hexkey] = value;
             batch.Put(finalkey, value);
         }
         private void DeleteFinal(byte[] finalkey)
         {
-            var hexkey = finalkey.ToHexString();
+            var hexkey = finalkey.ToString_Hex();
             cache.Remove(hexkey);
             batch.Delete(finalkey);
         }

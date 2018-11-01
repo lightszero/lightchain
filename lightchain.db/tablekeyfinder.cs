@@ -33,9 +33,10 @@ namespace lightchain.db
             this.it = snapshot.db.NewIterator(null, snapshot.readop);
             this.beginkey = _beginkey;
             this.endkey = _endkey;
-            this.Reset();
+            //this.Reset();
 
         }
+        bool bInit = false;
         RocksDbSharp.Iterator it;
         byte[] beginkey;
         byte[] endkey;
@@ -76,19 +77,26 @@ namespace lightchain.db
         }
         public bool MoveNext()
         {
-            var it2 = it.Next();
+            if (bInit == false)
+            {
+                bInit = true;
+                it.Seek(beginkey);
+            }
+            else
+            {
+                it.Next();
+            }
             if (it.Valid() == false)
                 return false;
-            this.Vaild = TestVaild(Current);
+            this.Vaild = TestVaild(it.Key());
             return true;
         }
 
         public void Reset()
         {
             it.Seek(beginkey);
-            if (it.Valid() == false)
-                this.Vaild = false;
-            this.Vaild = TestVaild(Current);
+            bInit = false;
+            this.Vaild = false;
         }
 
         public void Dispose()

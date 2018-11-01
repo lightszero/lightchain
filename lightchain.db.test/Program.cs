@@ -14,6 +14,7 @@ namespace lightchain.db.test
             AddMenu("test.db.tabledelete", "delete a table", test_db_tabledelete);
             AddMenu("test.db.tablewrite", "write a table", test_db_tablewrite);
             AddMenu("test.db.tableinfo", "get a table info", test_db_tableinfo);
+            AddMenu("test.db.tableserach", "serach a table", test_db_tableserach);
         }
         static lightchain.db.LightDB db = null;
         static void test_db_open(string[] words)
@@ -65,7 +66,7 @@ namespace lightchain.db.test
 
                         for (var i = 0; i < 100; i++)
                         {
-                            var key = ("key" + i).ToBytes_UTF8Decode();
+                            var key = ("key" + i).ToBytes_UTF8Encode();
                             writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
                             db.Write(writebatch);
                         }
@@ -92,13 +93,13 @@ namespace lightchain.db.test
                         //写100个uint32
                         for (var i = 0; i < 100; i++)
                         {
-                            var key = ("key" + i).ToBytes_UTF8Decode();
+                            var key = ("key" + i).ToBytes_UTF8Encode();
                             writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
                         }
                         //写100个字符串
                         for (var i = 0; i < 100; i++)
                         {
-                            var key = ("skey" + i).ToBytes_UTF8Decode();
+                            var key = ("skey" + i).ToBytes_UTF8Encode();
                             writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.String, "abcdefg" + i));
                         }
 
@@ -138,10 +139,31 @@ namespace lightchain.db.test
                 Console.WriteLine("test db table");
                 using (var snap = db.CreateSnapInfo())
                 {
-                    var writebatch = db.CreateWriteBatch(snap);
-
-                    writebatch.DeleteTable(new byte[] { 0x01, 0x02, 0x03 });
-                    db.Write(writebatch);
+                    using (var writebatch = db.CreateWriteBatch(snap))
+                    {
+                        writebatch.DeleteTable(new byte[] { 0x01, 0x02, 0x03 });
+                        db.Write(writebatch);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("error:" + err.Message);
+            }
+        }
+        static void test_db_tableserach(string[] words)
+        {
+            try
+            {
+                Console.WriteLine("test db table");
+                using (var snap = db.CreateSnapInfo())
+                {
+                    var keyfinder = snap.CreateKeyFinder(new byte[] { 0x01, 0x02, 0x03 });
+                    foreach(byte[] key  in keyfinder)
+                    {
+                        var strkey = System.Text.Encoding.UTF8.GetString(key);
+                        Console.WriteLine("got a key:" + strkey);
+                    }
                 }
             }
             catch (Exception err)
