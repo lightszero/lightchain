@@ -21,21 +21,26 @@ namespace lightchain.db
             option.SetCreateIfMissing(true);
             option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
             this.db = RocksDbSharp.RocksDb.Open(option, path);
-            LastSnapShot = CreateSnapInfo();
+
+            snapshotLast = CreateSnapInfo();
+            snapshotLast.refCount++;
         }
         public void Close()
         {
             this.db.Dispose();
             this.db = null;
         }
-        public SnapShot LastSnapShot
-        {
-            get;
-            private set;
-        }
+        private SnapShot snapshotLast;
 
+
+        //如果 height=0，取最新的快照
+        public ISnapShot UseSnapShot()
+        {
+            snapshotLast.refCount++;
+            return snapshotLast;
+        }
         //创建快照
-        public SnapShot CreateSnapInfo()
+        private SnapShot CreateSnapInfo()
         {
             //看最新高度的快照是否已经产生
             var snapshot = new SnapShot(this.db);
@@ -52,7 +57,7 @@ namespace lightchain.db
         static readonly byte[] systemtable_info = new byte[] { 0x00 };
         public void Write(WriteTask task)
         {
-            using (var wb = new WriteBatch(this.db, LastSnapShot))
+            using (var wb = new WriteBatch(this.db, snapshotLast))
             {
                 //var taskblock = task.Tobytes(height);
                 //还要把这个block本身写入，高度写入
@@ -86,8 +91,9 @@ namespace lightchain.db
                     }
                 }
                 this.db.Write(wb.batch);
-                LastSnapShot.Dispose();
-                LastSnapShot = CreateSnapInfo();
+                snapshotLast.Dispose();
+                snapshotLast = CreateSnapInfo();
+                snapshotLast.refCount++;
             }
         }
         //往数据库里写入一块数据

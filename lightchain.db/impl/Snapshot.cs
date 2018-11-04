@@ -8,18 +8,25 @@ namespace lightchain.db
     /// <summary>
     /// snapshot 快照，是rocksdb的重要功能，用快照来读取，无论此时数据如何被写入，都不会影响读取的结果
     /// </summary>
-    public class SnapShot : IDisposable
+    class SnapShot : ISnapShot
     {
         public SnapShot(RocksDbSharp.RocksDb db)
         {
             this.db = db;
         }
+        public int refCount = 0;
         public RocksDbSharp.RocksDb db;
         public RocksDbSharp.ReadOptions readop;
         public RocksDbSharp.Snapshot snapshot;
         public void Dispose()
         {
-            snapshot.Dispose();
+            refCount--;
+            if (refCount == 0 && snapshot != null)
+            {
+                snapshot.Dispose();
+                snapshot = null;
+                readop = null;
+            }
         }
         public byte[] GetValueData(byte[] tableid, byte[] key)
         {
@@ -30,12 +37,12 @@ namespace lightchain.db
         {
             return DBValue.FromRaw(GetValueData(tableid, key));
         }
-        public TableKeyFinder CreateKeyFinder(byte[] tableid, byte[] beginkey = null, byte[] endkey = null)
+        public IEnumerable<byte[]> CreateKeyFinder(byte[] tableid, byte[] beginkey = null, byte[] endkey = null)
         {
             TableKeyFinder find = new TableKeyFinder(this, tableid, beginkey, endkey);
             return find;
         }
-        public TableIterator CreateKeyIterator(byte[] tableid, byte[] _beginkey = null, byte[] _endkey = null)
+        public IEnumerator<byte[]> CreateKeyIterator(byte[] tableid, byte[] _beginkey = null, byte[] _endkey = null)
         {
             var beginkey = Helper.CalcKey(tableid, _beginkey);
             var endkey = Helper.CalcKey(tableid, _endkey);

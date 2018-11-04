@@ -6,7 +6,7 @@ using System.Text;
 
 namespace lightchain.db
 {
-    public class TableKeyFinder : IEnumerable<byte[]>
+    class TableKeyFinder : IEnumerable<byte[]>
     {
         public TableKeyFinder(SnapShot _snapshot, byte[] _tableid, byte[] _beginkey, byte[] _endkey)
         {
@@ -29,7 +29,7 @@ namespace lightchain.db
             return GetEnumerator();
         }
     }
-    public class TableIterator : IEnumerator<byte[]>
+    class TableIterator : IEnumerator<byte[]>
     {
         public TableIterator(SnapShot snapshot, byte[] _tableid, byte[] _beginkeyfinal, byte[] _endkeyfinal)
         {

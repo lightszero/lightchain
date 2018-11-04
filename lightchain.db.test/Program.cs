@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace lightchain.db.test
 {
@@ -51,7 +52,7 @@ namespace lightchain.db.test
 
                 Console.WriteLine("test db table");
 
-                using (var snap = db.CreateSnapInfo())
+                using (var snap = db.UseSnapShot())
                 {
                     var writetask = db.CreateWriteTask();
                     {
@@ -82,12 +83,12 @@ namespace lightchain.db.test
         }
         static void test_db_tablewrite(string[] words)
         {
-            //try
-            //{
+            try
+            {
 
                 Console.WriteLine("test db table");
 
-                using (var snap = db.CreateSnapInfo())
+                using (var snap = db.UseSnapShot())
                 {
                     var writetask = db.CreateWriteTask();
                     {
@@ -108,18 +109,18 @@ namespace lightchain.db.test
                     }
 
                 }
-            //}
-            //catch (Exception err)
-            //{
-            //    Console.WriteLine("error:" + err.Message);
-            //}
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("error:" + err.Message);
+            }
         }
         static void test_db_tableinfo(string[] words)
         {
             try
             {
                 Console.WriteLine("test db table");
-                using (var snap = db.CreateSnapInfo())
+                using (var snap = db.UseSnapShot())
                 {
                     var info = snap.GetTableInfo(new byte[] { 0x01, 0x02, 0x03 });
                     var count = snap.GetTableCount(new byte[] { 0x01, 0x02, 0x03 });
@@ -138,7 +139,7 @@ namespace lightchain.db.test
             try
             {
                 Console.WriteLine("test db table");
-                using (var snap = db.CreateSnapInfo())
+                using (var snap = db.UseSnapShot())
                 {
                     var writetask = db.CreateWriteTask();
                     {
@@ -157,7 +158,7 @@ namespace lightchain.db.test
             try
             {
                 Console.WriteLine("test db table");
-                using (var snap = db.CreateSnapInfo())
+                using (var snap = db.UseSnapShot())
                 {
                     var keyfinder = snap.CreateKeyFinder(new byte[] { 0x01, 0x02, 0x03 });
                     foreach(byte[] key  in keyfinder)

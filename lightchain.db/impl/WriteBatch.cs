@@ -7,7 +7,7 @@ namespace lightchain.db
     /// <summary>
     /// WriteBatch 写入批，是个很基本的功能，不应该对外暴露
     /// </summary>
-    public class WriteBatch : IDisposable
+    class WriteBatch : IDisposable
     {
         public WriteBatch(RocksDbSharp.RocksDb db, SnapShot snapshot)
         {
@@ -68,7 +68,7 @@ namespace lightchain.db
             PutDataFinal(finalkey, value.ToBytes());
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
         }
-        public void CreateTable(byte[] tableid,byte[] infodata)
+        public void CreateTable(byte[] tableid, byte[] infodata)
         {
             var finalkey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
             var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
