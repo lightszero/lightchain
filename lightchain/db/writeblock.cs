@@ -32,14 +32,14 @@ namespace lightchain.db
     }
     public class WriteOp_CreateTable : IWriteOp
     {
-        public WriteOp_CreateTable(byte[] _tablehead, string _tablename, string _tabledesc, DBValue.Type _keytype)
+        public WriteOp_CreateTable(byte[] _tableid, string _tablename, string _tabledesc, DBValue.Type _keytype)
         {
-            this.tablehead = _tablehead;
+            this.tableid= _tableid;
             this.tablename = _tablename;
             this.tabledesc = _tabledesc;
             this.keytype = _keytype;
         }
-        public byte[] tablehead;
+        public byte[] tableid;
         public string tablename;
         public string tabledesc;
         public DBValue.Type keytype;
@@ -60,7 +60,7 @@ namespace lightchain.db
     }
     public class WriteOp_DeleteTable : IWriteOp
     {
-        public byte[] tablehead;
+        public byte[] tableid;
         public WriteFunc func => WriteFunc.DeleteTable;
         public void Pack(System.IO.Stream stream)
         {
@@ -69,7 +69,7 @@ namespace lightchain.db
     }
     public class WriteOp_PutValue : IWriteOp
     {
-        public byte[] tablehead;
+        public byte[] tableid;
         public byte[] key;
         public DBValue value;
         public WriteFunc func => WriteFunc.PutValue;
@@ -80,7 +80,7 @@ namespace lightchain.db
     }
     public class WriteOp_DeleteValue : IWriteOp
     {
-        public byte[] tablehead;
+        public byte[] tableid;
         public byte[] key;
 
         public WriteFunc func => WriteFunc.DeleteValue;

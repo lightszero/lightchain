@@ -8,20 +8,20 @@ namespace lightchain.db
 {
     public class TableKeyFinder : IEnumerable<byte[]>
     {
-        public TableKeyFinder(SnapShot _snapshot, byte[] tablehead, byte[] _beginkey, byte[] _endkey)
+        public TableKeyFinder(SnapShot _snapshot, byte[] _tableid, byte[] _beginkey, byte[] _endkey)
         {
             this.snapshot = _snapshot;
-            this.tablehead = tablehead;
-            this.beginkeyfinal = Helper.CalcKey(tablehead, _beginkey);
-            this.endkeyfinal = Helper.CalcKey(tablehead, _endkey);
+            this.tableid = _tableid;
+            this.beginkeyfinal = Helper.CalcKey(_tableid, _beginkey);
+            this.endkeyfinal = Helper.CalcKey(_tableid, _endkey);
         }
         SnapShot snapshot;
-        byte[] tablehead;
+        byte[] tableid;
         byte[] beginkeyfinal;
         byte[] endkeyfinal;
         public IEnumerator<byte[]> GetEnumerator()
         {
-            return new TableIterator(snapshot, tablehead, beginkeyfinal, endkeyfinal);
+            return new TableIterator(snapshot, tableid, beginkeyfinal, endkeyfinal);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -31,10 +31,10 @@ namespace lightchain.db
     }
     public class TableIterator : IEnumerator<byte[]>
     {
-        public TableIterator(SnapShot snapshot, byte[] tablehead, byte[] _beginkeyfinal, byte[] _endkeyfinal)
+        public TableIterator(SnapShot snapshot, byte[] _tableid, byte[] _beginkeyfinal, byte[] _endkeyfinal)
         {
             this.it = snapshot.db.NewIterator(null, snapshot.readop);
-            this.tablehead = tablehead;
+            this.tableid = _tableid;
             this.beginkeyfinal = _beginkeyfinal;
             this.endkeyfinal = _endkeyfinal;
             //this.Reset();
@@ -42,7 +42,7 @@ namespace lightchain.db
         }
         bool bInit = false;
         RocksDbSharp.Iterator it;
-        byte[] tablehead;
+        byte[] tableid;
         byte[] beginkeyfinal;
         byte[] endkeyfinal;
         public byte[] Current
@@ -50,7 +50,7 @@ namespace lightchain.db
             get
             {
                 if (this.Vaild)
-                    return it.Key().Skip(this.tablehead.Length + 2).ToArray();
+                    return it.Key().Skip(this.tableid.Length + 2).ToArray();
                 else
                     return null;
             }

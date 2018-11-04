@@ -21,37 +21,37 @@ namespace lightchain.db
         {
             snapshot.Dispose();
         }
-        public byte[] GetValueData(byte[] tablehead, byte[] key)
+        public byte[] GetValueData(byte[] tableid, byte[] key)
         {
-            byte[] finialkey = Helper.CalcKey(tablehead, key);
+            byte[] finialkey = Helper.CalcKey(tableid, key);
             return this.db.Get(finialkey, null, readop);
         }
-        public DBValue GetValue(byte[] tablehead, byte[] key)
+        public DBValue GetValue(byte[] tableid, byte[] key)
         {
-            return DBValue.FromRaw(GetValueData(tablehead, key));
+            return DBValue.FromRaw(GetValueData(tableid, key));
         }
-        public TableKeyFinder CreateKeyFinder(byte[] tablehead, byte[] beginkey = null, byte[] endkey = null)
+        public TableKeyFinder CreateKeyFinder(byte[] tableid, byte[] beginkey = null, byte[] endkey = null)
         {
-            TableKeyFinder find = new TableKeyFinder(this, tablehead, beginkey, endkey);
+            TableKeyFinder find = new TableKeyFinder(this, tableid, beginkey, endkey);
             return find;
         }
-        public TableIterator CreateKeyIterator(byte[] tablehead, byte[] _beginkey = null, byte[] _endkey = null)
+        public TableIterator CreateKeyIterator(byte[] tableid, byte[] _beginkey = null, byte[] _endkey = null)
         {
-            var beginkey = Helper.CalcKey(tablehead, _beginkey);
-            var endkey = Helper.CalcKey(tablehead, _endkey);
-            return new TableIterator(this, tablehead, beginkey, endkey);
+            var beginkey = Helper.CalcKey(tableid, _beginkey);
+            var endkey = Helper.CalcKey(tableid, _endkey);
+            return new TableIterator(this, tableid, beginkey, endkey);
         }
-        public TableInfo GetTableInfo(byte[] tablehead)
+        public TableInfo GetTableInfo(byte[] tableid)
         {
-            var tablekey = Helper.CalcKey(tablehead, null, SplitWord.TableInfo);
+            var tablekey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
             var data = this.db.Get(tablekey, null, readop);
             if (data == null)
                 return null;
             return TableInfo.FromRaw(DBValue.FromRaw(data).value);
         }
-        public uint GetTableCount(byte[] tablehead)
+        public uint GetTableCount(byte[] tableid)
         {
-            var tablekey = Helper.CalcKey(tablehead, null, SplitWord.TableCount);
+            var tablekey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
             var data = this.db.Get(tablekey, null, readop);
             return DBValue.FromRaw(data).AsUInt32();
         }

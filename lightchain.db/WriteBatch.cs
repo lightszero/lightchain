@@ -57,8 +57,8 @@ namespace lightchain.db
         }
         public void CreateTable(TableInfo info)
         {
-            var finalkey = Helper.CalcKey(info.tablehead, null, SplitWord.TableInfo);
-            var countkey = Helper.CalcKey(info.tablehead, null, SplitWord.TableCount);
+            var finalkey = Helper.CalcKey(info.tableid, null, SplitWord.TableInfo);
+            var countkey = Helper.CalcKey(info.tableid, null, SplitWord.TableCount);
             var data = GetDataFinal(finalkey);
             if (data != null && data[0] != (byte)DBValue.Type.Deleted)
             {
@@ -68,10 +68,23 @@ namespace lightchain.db
             PutDataFinal(finalkey, value.ToBytes());
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
         }
-        public void DeleteTable(byte[] tablehead, bool makeTag = false)
+        public void CreateTable(byte[] tableid,byte[] infodata)
         {
-            var finalkey = Helper.CalcKey(tablehead, null, SplitWord.TableInfo);
-            //var countkey = Helper.CalcKey(tablehead, null, SplitWord.TableCount);
+            var finalkey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
+            var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
+            var data = GetDataFinal(finalkey);
+            if (data != null && data[0] != (byte)DBValue.Type.Deleted)
+            {
+                throw new Exception("alread have that.");
+            }
+            var value = DBValue.FromValue(DBValue.Type.Bytes, infodata);
+            PutDataFinal(finalkey, value.ToBytes());
+            PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
+        }
+        public void DeleteTable(byte[] tableid, bool makeTag = false)
+        {
+            var finalkey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
+            //var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
             var vdata = GetDataFinal(finalkey);
             if (vdata != null && vdata[0] != (byte)DBValue.Type.Deleted)
             {
@@ -95,31 +108,34 @@ namespace lightchain.db
                 }
             }
         }
-        public void PutUnsafe(byte[] tablehead, byte[] key, byte[] data)
+        public void PutUnsafe(byte[] tableid, byte[] key, byte[] finaldata)
         {
-            var finalkey = Helper.CalcKey(tablehead, key);
-            var countkey = Helper.CalcKey(tablehead, null, SplitWord.TableCount);
+            var finalkey = Helper.CalcKey(tableid, key);
+            var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
             var countdata = GetDataFinal(countkey);
             UInt32 count = 0;
             if (countdata != null)
             {
                 count = DBValue.FromRaw(countdata).AsUInt32();
             }
-            count++;
-
-            PutDataFinal(finalkey, data);
+            var vdata = GetDataFinal(finalkey);
+            if (vdata == null || vdata[0] == (byte)DBValue.Type.Deleted)
+            {
+                count++;
+            }
+            PutDataFinal(finalkey, finaldata);
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, count).ToBytes());
         }
 
-        public void Put(byte[] tablehead, byte[] key, DBValue value)
+        public void Put(byte[] tableid, byte[] key, DBValue value)
         {
-            PutUnsafe(tablehead, key, value.ToBytes());
+            PutUnsafe(tableid, key, value.ToBytes());
         }
-        public void Delete(byte[] tablehead, byte[] key, bool makeTag = false)
+        public void Delete(byte[] tableid, byte[] key, bool makeTag = false)
         {
-            var finalkey = Helper.CalcKey(tablehead, key);
+            var finalkey = Helper.CalcKey(tableid, key);
 
-            var countkey = Helper.CalcKey(tablehead, null, SplitWord.TableCount);
+            var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
             var countdata = GetDataFinal(countkey);
             UInt32 count = 0;
             if (countdata != null)

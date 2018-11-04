@@ -53,23 +53,24 @@ namespace lightchain.db.test
 
                 using (var snap = db.CreateSnapInfo())
                 {
-                    using (var writebatch = db.CreateWriteBatch(snap))
+                    var writetask = db.CreateWriteTask();
                     {
                         var info = new lightchain.db.TableInfo(
-                            new byte[] { 0x01, 0x02, 0x03 },//tablehead 是区分表格的数据，至少长度2，太短的不允许
+                            new byte[] { 0x01, 0x02, 0x03 },//tableid 是区分表格的数据，至少长度2，太短的不允许
                                                             //下面三个参数都是提供表的信息，无所谓什么
                             "mytable",//tablename 
                             "testtable0001",//tabledesc
                             DBValue.Type.String//tablekeytype
                             );
-                        writebatch.CreateTable(info);
+                        writetask.CreateTable(info);
 
                         for (var i = 0; i < 100; i++)
                         {
                             var key = ("key" + i).ToBytes_UTF8Encode();
-                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
-                            db.Write(writebatch);
+                            writetask.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
+                            
                         }
+                        db.Write(writetask);
                     }
                 }
                 Console.WriteLine("create table and write 100 item.");
@@ -81,37 +82,37 @@ namespace lightchain.db.test
         }
         static void test_db_tablewrite(string[] words)
         {
-            try
-            {
+            //try
+            //{
 
                 Console.WriteLine("test db table");
 
                 using (var snap = db.CreateSnapInfo())
                 {
-                    using (var writebatch = db.CreateWriteBatch(snap))
+                    var writetask = db.CreateWriteTask();
                     {
                         //写100个uint32
                         for (var i = 0; i < 100; i++)
                         {
                             var key = ("key" + i).ToBytes_UTF8Encode();
-                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
+                            writetask.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
                         }
                         //写100个字符串
                         for (var i = 0; i < 100; i++)
                         {
                             var key = ("skey" + i).ToBytes_UTF8Encode();
-                            writebatch.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.String, "abcdefg" + i));
+                            writetask.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.String, "abcdefg" + i));
                         }
 
-                        db.Write(writebatch);
+                        db.Write(writetask);
                     }
 
                 }
-            }
-            catch (Exception err)
-            {
-                Console.WriteLine("error:" + err.Message);
-            }
+            //}
+            //catch (Exception err)
+            //{
+            //    Console.WriteLine("error:" + err.Message);
+            //}
         }
         static void test_db_tableinfo(string[] words)
         {
@@ -139,10 +140,10 @@ namespace lightchain.db.test
                 Console.WriteLine("test db table");
                 using (var snap = db.CreateSnapInfo())
                 {
-                    using (var writebatch = db.CreateWriteBatch(snap))
+                    var writetask = db.CreateWriteTask();
                     {
-                        writebatch.DeleteTable(new byte[] { 0x01, 0x02, 0x03 });
-                        db.Write(writebatch);
+                        writetask.DeleteTable(new byte[] { 0x01, 0x02, 0x03 });
+                        db.Write(writetask);
                     }
                 }
             }

@@ -94,8 +94,8 @@ namespace lightchain
                 WriteBlock wblock = new WriteBlock();
                 for (var i = 0; i < 10; i++)
                 {
-                    var tablehead = new byte[] { 1, (byte)i };
-                    wblock.ops.Add(new WriteOp_CreateTable(tablehead, "testtable" + i, "testtable", DBValue.Type.String));
+                    var tableid = new byte[] { 1, (byte)i };
+                    wblock.ops.Add(new WriteOp_CreateTable(tableid, "testtable" + i, "testtable", DBValue.Type.String));
                     db.WriteBlock(wblock);
                 }
                

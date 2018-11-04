@@ -12,6 +12,7 @@ namespace lightchain.db
     }
     public static class Helper
     {
+
         public static byte[] ToBytes_UTF8Encode(this string str)
         {
             return System.Text.Encoding.UTF8.GetBytes(str);
@@ -38,10 +39,21 @@ namespace lightchain.db
             }
             return sb.ToString();
         }
+
         public static string ToString_UTF8Decode(this byte[] data)
         {
             return System.Text.Encoding.UTF8.GetString(data);
         }
+
+        public static UInt64 ToUInt64(this byte[] data)
+        {
+            return BitConverter.ToUInt64(data, 0);
+        }
+        public static byte[] ToBytes(this UInt64 value)
+        {
+            return BitConverter.GetBytes(value);
+        }
+
         public static byte[] CalcKey(byte[] head, byte[] key, SplitWord splitWord = SplitWord.TableItem)
         {
             if (head.Length > 255)
