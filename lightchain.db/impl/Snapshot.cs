@@ -14,18 +14,51 @@ namespace lightchain.db
         {
             this.db = db;
         }
-        public int refCount = 0;
+        public void Init()
+        {
+            this.readop = new RocksDbSharp.ReadOptions();
+            this.snapshot = db.CreateSnapshot();
+            this.readop.SetSnapshot(this.snapshot);
+            var _height = GetValue(LightDB.systemtable_info, "_height".ToBytes_UTF8Encode());
+            if (_height == null || _height.type == DBValue.Type.Deleted)
+            {
+                this.DataHeight = 0;
+            }
+            else
+            {
+                this.DataHeight = GetValue(LightDB.systemtable_info, "_height".ToBytes_UTF8Encode()).AsUInt64();
+            }
+        }
+        int refCount = 0;
         public RocksDbSharp.RocksDb db;
         public RocksDbSharp.ReadOptions readop;
         public RocksDbSharp.Snapshot snapshot;
+        public UInt64 DataHeight
+        {
+            get;
+            private set;
+        }
         public void Dispose()
         {
-            refCount--;
-            if (refCount == 0 && snapshot != null)
+            lock (snapshot)
             {
-                snapshot.Dispose();
-                snapshot = null;
-                readop = null;
+                refCount--;
+                if (refCount == 0 && snapshot != null)
+                {
+                    snapshot.Dispose();
+                    snapshot = null;
+                    readop = null;
+                }
+            }
+        }
+        /// <summary>
+        /// 对snapshot的引用计数加锁，保证处理是线程安全的
+        /// </summary>
+        public void AddRef()
+        {
+            lock (snapshot)
+            {
+                refCount++;
             }
         }
         public byte[] GetValueData(byte[] tableid, byte[] key)

@@ -20,12 +20,12 @@ namespace lightchain.db
 
         public void Pack(System.IO.Stream stream)
         {
-            if(tableid.Length>255)
+            if (tableid.Length > 255)
                 throw new Exception("tableid.Length>255");
-            byte[] __tablename = System.Text.Encoding.UTF8.GetBytes(tablename);
+            byte[] __tablename = tablename == null ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(tablename);
             if (__tablename.Length > 255)
                 throw new Exception("tablename.Length>255");
-            byte[] __tabledesc = System.Text.Encoding.UTF8.GetBytes(tabledesc);
+            byte[] __tabledesc = tabledesc == null ? new byte[0] : System.Text.Encoding.UTF8.GetBytes(tabledesc);
             if (__tabledesc.Length > 255)
                 throw new Exception("tabledesc.Length>255");
 

@@ -18,6 +18,41 @@ namespace lightchain.db
         public byte[] tableID;
         public byte[] key;
         public byte[] value;
+        public void Pack(System.IO.Stream stream)
+        {
+            byte lenID = tableID == null ? (byte)0 : (byte)tableID.Length;
+            byte lenKey = key == null ? (byte)0 : (byte)key.Length;
+            UInt32 lenValue = key == null ? 0 : (UInt32)value.Length;
+            stream.WriteByte((byte)op);
+            stream.WriteByte(lenID);
+            stream.WriteByte(lenKey);
+            stream.Write(BitConverter.GetBytes(lenValue), 0, 4);
+            if (lenID > 0)
+                stream.Write(tableID, 0, lenID);
+            if (lenKey > 0)
+                stream.Write(key, 0, lenKey);
+            if (lenValue > 0)
+                stream.Write(value, 0, (int)lenValue);
+        }
+        public static WriteTaskItem UnPack(System.IO.Stream stream)
+        {
+            WriteTaskItem item = new WriteTaskItem();
+            byte lenID = (byte)stream.ReadByte();
+            byte lenKey = (byte)stream.ReadByte();
+            byte[] bufLenValue = new byte[4];
+            stream.Read(bufLenValue, 0, 4);
+            UInt32 lenvalue = BitConverter.ToUInt32(bufLenValue, 0);
+            item.tableID = new byte[lenID];
+            item.key = new byte[lenKey];
+            item.value = new byte[lenvalue];
+            if (lenID > 0)
+                stream.Read(item.tableID, 0, lenID);
+            if (lenKey > 0)
+                stream.Read(item.key, 0, lenKey);
+            if (lenvalue > 0)
+                stream.Read(item.value, 0, (int)lenvalue);
+            return item;
+        }
     }
 
     public class WriteTask
@@ -28,15 +63,26 @@ namespace lightchain.db
         public WriteTask()
         {
             items = new List<WriteTaskItem>();
+        }
 
+        ///// <summary>
+        ///// 增加一个保存附加数据的手段
+        ///// </summary>
+        public Dictionary<string, byte[]> extData;
+        public void AddExtData(byte[] id, byte[] data)
+        {
+            if (extData == null)
+                extData = new Dictionary<string, byte[]>();
+            extData[id.ToString_Hex()] = data;
         }
         public List<WriteTaskItem> items;
 
 
         public void CreateTable(TableInfo info)
         {
-            if (info.tableid.Length < 2)
-                throw new Exception("not allow too short table id.");
+            //donot check in here.
+            //if (info.tableid.Length < 2)
+            //    throw new Exception("not allow too short table id.");
             items.Add(
                     new WriteTaskItem()
                     {
@@ -86,6 +132,82 @@ namespace lightchain.db
                         value = null
                     }
                 );
+        }
+
+        public void Pack(System.IO.Stream stream)
+        {
+            var extcount = this.extData == null ? 0 : extData.Count;
+            if (extcount > 255)
+                throw new Exception("too mush ExtData.");
+            if (items.Count == 0 || items.Count > 65535)
+            {
+                throw new Exception("too mush items or no item.");
+            }
+            stream.WriteByte((byte)extcount);
+            if (extcount > 0)
+            {
+                foreach (var item in extData)
+                {
+                    byte[] key = item.Key.ToBytes_HexParse();
+                    byte[] v = item.Value;
+                    byte numkey = (byte)key.Length;
+                    byte[] numv = BitConverter.GetBytes((UInt32)v.Length);
+                    stream.WriteByte(numkey);
+                    stream.Write(numv, 0, 4);
+                    stream.Write(key, 0, numkey);
+                    stream.Write(v, 0, v.Length);
+                }
+            }
+            byte[] numitem = BitConverter.GetBytes((UInt16)items.Count);
+            stream.Write(numitem, 0, 2);
+            for (var i = 0; i < items.Count; i++)
+            {
+                items[i].Pack(stream);
+            }
+        }
+        public static WriteTask UnPack(System.IO.Stream stream)
+        {
+            var task = new WriteTask();
+            var extcount = stream.ReadByte();
+            if (extcount > 0)
+            {
+                task.extData = new Dictionary<string, byte[]>();
+            }
+            for (var i = 0; i < extcount; i++)
+            {
+                var numkey = stream.ReadByte();
+                byte[] bufnum = new byte[4];
+                var numv = stream.Read(bufnum, 0, 4);
+                UInt32 numValue = BitConverter.ToUInt32(bufnum);
+                byte[] bufv = new byte[Math.Max(numkey, numValue)];
+                stream.Read(bufv, 0, numkey);
+                var strkey = System.Text.Encoding.UTF8.GetString(bufv, 0, numkey);
+                stream.Read(bufv, 0, (int)numValue);
+                task.extData[strkey] = bufv;
+            }
+            byte[] bufnumitem = new byte[2];
+            stream.Read(bufnumitem, 0, 2);
+            var numitem = BitConverter.ToUInt16(bufnumitem, 0);
+            for (var i = 0; i < numitem; i++)
+            {
+                task.items.Add(WriteTaskItem.UnPack(stream));
+            }
+            return task;
+        }
+        public byte[] ToBytes()
+        {
+            using (var ms = new System.IO.MemoryStream())
+            {
+                Pack(ms);
+                return ms.ToArray();
+            }
+        }
+        public static WriteTask FromRaw(byte[] data)
+        {
+            using (var ms = new System.IO.MemoryStream(data))
+            {
+                return UnPack(ms);
+            }
         }
     }
 }

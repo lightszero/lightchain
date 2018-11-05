@@ -6,6 +6,14 @@ namespace lightchain.db
 {
     public interface ISnapShot : IDisposable
     {
+        /// <summary>
+        /// 得到数据高度
+        /// </summary>
+        /// <returns></returns>
+        UInt64 DataHeight
+        {
+            get;
+        }
         byte[] GetValueData(byte[] tableid, byte[] key);
         DBValue GetValue(byte[] tableid, byte[] key);
         IEnumerable<byte[]> CreateKeyFinder(byte[] tableid, byte[] beginkey = null, byte[] endkey = null);

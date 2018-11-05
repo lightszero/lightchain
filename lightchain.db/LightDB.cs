@@ -8,14 +8,18 @@ using System.Threading.Tasks;
 namespace lightchain.db
 {
 
-
+    public class DBCreateOption
+    {
+        public string MagicStr;//设定一个魔法字符串，作为数据库的创建字符串
+        public WriteTask FirstTask;//初始化数据库时要同时完成的任务
+    }
     public class LightDB
     {
         public Version Version => typeof(LightDB).Assembly.GetName().Version;
 
 
         RocksDbSharp.RocksDb db;
-        public void Open(string path)
+        public void Open(string path, DBCreateOption createOption = null)
         {
             RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
             option.SetCreateIfMissing(true);
@@ -23,7 +27,40 @@ namespace lightchain.db
             this.db = RocksDbSharp.RocksDb.Open(option, path);
 
             snapshotLast = CreateSnapInfo();
-            snapshotLast.refCount++;
+            if (snapshotLast.DataHeight == 0)
+            {
+                InitFirstBlock(createOption);
+            }
+            snapshotLast.AddRef();
+        }
+
+        private void InitFirstBlock(DBCreateOption createOption)
+        {
+            //数据库需要初始化
+            if (createOption == null)
+            {
+                this.Close();
+                throw new Exception("数据库需要初始化 open(path,createOption)");
+            }
+            else
+            {
+                var writetask = new WriteTask();
+                writetask.CreateTable(new TableInfo(systemtable_info, "_table_info", null, DBValue.Type.String));
+                writetask.CreateTable(new TableInfo(systemtable_block, "_table_block", null, DBValue.Type.String));
+
+                if (createOption.FirstTask != null)
+                {
+                    foreach (var t in createOption.FirstTask.items)
+                    {
+                        writetask.items.Add(t);
+                    }
+                }
+                this.WriteUnsafe(writetask);
+            }
+        }
+        private void AddHeight(WriteTask task)
+        {
+
         }
         public void Close()
         {
@@ -32,69 +69,88 @@ namespace lightchain.db
         }
         private SnapShot snapshotLast;
 
-
         //如果 height=0，取最新的快照
         public ISnapShot UseSnapShot()
         {
-            snapshotLast.refCount++;
-            return snapshotLast;
+            var snap = snapshotLast;
+
+            snap.AddRef();
+            return snap;
         }
         //创建快照
         private SnapShot CreateSnapInfo()
         {
             //看最新高度的快照是否已经产生
             var snapshot = new SnapShot(this.db);
-            snapshot.readop = new RocksDbSharp.ReadOptions();
-            snapshot.snapshot = db.CreateSnapshot();
-            snapshot.readop.SetSnapshot(snapshot.snapshot);
+            snapshot.Init();
             return snapshot;
         }
         public WriteTask CreateWriteTask()
         {
             return new WriteTask();
         }
-        static readonly byte[] systemtable_block = new byte[] { 0x01 };
-        static readonly byte[] systemtable_info = new byte[] { 0x00 };
-        public void Write(WriteTask task)
+        public static readonly byte[] systemtable_block = new byte[] { 0x01 };
+        public static readonly byte[] systemtable_info = new byte[] { 0x00 };
+        private void QuickFixHeight(byte[] data)
+        {
+
+        }
+        private void WriteUnsafe(WriteTask task)
         {
             using (var wb = new WriteBatch(this.db, snapshotLast))
             {
-                //var taskblock = task.Tobytes(height);
-                //还要把这个block本身写入，高度写入
-                //wb.Put(systemtable_block, height, taskblock);
                 foreach (var item in task.items)
                 {
+                    if (item.value != null)
+                    {
+                        QuickFixHeight(item.value);
+                    }
                     switch (item.op)
                     {
                         case WriteTaskOP.CreateTable:
-                            if (item.tableID.Length < 2)
-                                throw new Exception("not allow too short table id.");
                             wb.CreateTable(item.tableID, item.value);
                             break;
                         case WriteTaskOP.DeleteTable:
-                            if (item.tableID.Length < 2)
-                                throw new Exception("not allow too short table id.");
                             wb.DeleteTable(item.tableID);
                             break;
                         case WriteTaskOP.PutValue:
-                            if (item.tableID.Length < 2)
-                                throw new Exception("not allow too short table id.");
                             wb.PutUnsafe(item.tableID, item.key, item.value);
                             break;
                         case WriteTaskOP.DeleteValue:
-                            if (item.tableID.Length < 2)
-                                throw new Exception("not allow too short table id.");
                             wb.Delete(item.tableID, item.key);
                             break;
                         case WriteTaskOP.Log:
                             break;
                     }
                 }
+                var taskblock = task.ToBytes();
+                //还要把这个block本身写入，高度写入
+                var finaldata = DBValue.FromValue(DBValue.Type.Bytes, taskblock).ToBytes();
+                QuickFixHeight(finaldata);
+                var blockkey = BitConverter.GetBytes(snapshotLast.DataHeight);
+                wb.PutUnsafe(systemtable_block, blockkey, finaldata);
+                //wb.Put(systemtable_block, height, taskblock);
+
+                //height++
+                var finalheight = DBValue.FromValue(DBValue.Type.UINT64, (ulong)(snapshotLast.DataHeight + 1)).ToBytes();
+                QuickFixHeight(finalheight);
+                wb.PutUnsafe(systemtable_info, "_height".ToBytes_UTF8Encode(), finalheight);
+
+
                 this.db.Write(wb.batch);
                 snapshotLast.Dispose();
                 snapshotLast = CreateSnapInfo();
-                snapshotLast.refCount++;
+                snapshotLast.AddRef();
             }
+        }
+        public void Write(WriteTask task)
+        {
+            foreach (var item in task.items)
+            {
+                if (item.tableID != null && item.tableID.Length < 2)
+                    throw new Exception("table id is too short.");
+            }
+            WriteUnsafe(task);
         }
         //往数据库里写入一块数据
         //public void Write(WriteBatch batch)

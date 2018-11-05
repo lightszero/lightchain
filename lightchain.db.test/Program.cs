@@ -27,9 +27,17 @@ namespace lightchain.db.test
                 //打开一个数据库，打开时如果不存在会创建一个
                 db.Open("d:\\db001");
             }
-            catch (Exception err)
+            catch
             {
-                Console.WriteLine("error:" + err.Message);
+                //try
+                {
+                    Console.WriteLine("create db");
+                    db.Open("d:\\db001", new DBCreateOption() { MagicStr = "hello world." });
+                }
+                //catch (Exception err)
+                //{
+                //    Console.WriteLine("error:" + err.Message);
+                //}
             }
         }
         static void test_db_close(string[] words)
@@ -69,7 +77,7 @@ namespace lightchain.db.test
                         {
                             var key = ("key" + i).ToBytes_UTF8Encode();
                             writetask.Put(new byte[] { 0x01, 0x02, 0x03 }, key, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)i));
-                            
+
                         }
                         db.Write(writetask);
                     }
@@ -126,6 +134,7 @@ namespace lightchain.db.test
                     var count = snap.GetTableCount(new byte[] { 0x01, 0x02, 0x03 });
                     Console.WriteLine("get table info: name=" + info.tablename);
                     Console.WriteLine("get table count =" + count);
+                    Console.WriteLine("snapheight=" + snap.DataHeight);
 
                 }
             }
@@ -161,7 +170,7 @@ namespace lightchain.db.test
                 using (var snap = db.UseSnapShot())
                 {
                     var keyfinder = snap.CreateKeyFinder(new byte[] { 0x01, 0x02, 0x03 });
-                    foreach(byte[] key  in keyfinder)
+                    foreach (byte[] key in keyfinder)
                     {
                         var strkey = System.Text.Encoding.UTF8.GetString(key);
                         Console.WriteLine("got a key:" + strkey);
