@@ -94,7 +94,7 @@ namespace lightchain.db
             if (it.Valid() == false)
                 return false;
             this.Vaild = TestVaild(it.Key());
-            return true;
+            return this.Vaild;
         }
 
         public void Reset()

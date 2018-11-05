@@ -46,7 +46,7 @@ namespace lightchain.db
             {
                 var writetask = new WriteTask();
                 writetask.CreateTable(new TableInfo(systemtable_info, "_table_info", null, DBValue.Type.String));
-                writetask.CreateTable(new TableInfo(systemtable_block, "_table_block", null, DBValue.Type.String));
+                writetask.CreateTable(new TableInfo(systemtable_block, "_table_block", null, DBValue.Type.UINT64));
 
                 if (createOption.FirstTask != null)
                 {

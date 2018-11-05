@@ -16,6 +16,7 @@ namespace lightchain.db.test
             AddMenu("test.db.tablewrite", "write a table", test_db_tablewrite);
             AddMenu("test.db.tableinfo", "get a table info", test_db_tableinfo);
             AddMenu("test.db.tableserach", "serach a table", test_db_tableserach);
+            AddMenu("test.db.enumblock", "enum every writeblock", test_db_enumblock);
         }
         static lightchain.db.LightDB db = null;
         static void test_db_open(string[] words)
@@ -174,6 +175,34 @@ namespace lightchain.db.test
                     {
                         var strkey = System.Text.Encoding.UTF8.GetString(key);
                         Console.WriteLine("got a key:" + strkey);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("error:" + err.Message);
+            }
+        }
+        static void test_db_enumblock(string[] words)
+        {
+            try
+            {
+                Console.WriteLine("test_db_enumblock");
+                using (var snap = db.UseSnapShot())
+                {
+                    Console.WriteLine("now snap height=" + snap.DataHeight);
+                    var keyfinder = snap.CreateKeyFinder(LightDB.systemtable_block);
+                    foreach (byte[] key in keyfinder)
+                    {
+                        var longkey = BitConverter.ToUInt64(key);
+                        Console.WriteLine("got a key:" + longkey);
+                        var data = snap.GetValue(LightDB.systemtable_block, key);
+                        var task = WriteTask.FromRaw(data.value);
+                        Console.WriteLine("   task count=" + task.items.Count);
+                        foreach (var item in task.items)
+                        {
+                            Console.WriteLine("   item:" + item.op + ":" + item.key.Length + "," + item.value.Length);
+                        }
                     }
                 }
             }

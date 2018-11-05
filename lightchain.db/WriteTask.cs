@@ -4,7 +4,7 @@ using System.Text;
 
 namespace lightchain.db
 {
-    public enum WriteTaskOP
+    public enum WriteTaskOP : byte
     {
         CreateTable,
         DeleteTable,
@@ -37,6 +37,7 @@ namespace lightchain.db
         public static WriteTaskItem UnPack(System.IO.Stream stream)
         {
             WriteTaskItem item = new WriteTaskItem();
+            item.op = (WriteTaskOP)(byte)stream.ReadByte();
             byte lenID = (byte)stream.ReadByte();
             byte lenKey = (byte)stream.ReadByte();
             byte[] bufLenValue = new byte[4];
