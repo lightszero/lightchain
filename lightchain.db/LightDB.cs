@@ -91,56 +91,58 @@ namespace lightchain.db
         }
         public static readonly byte[] systemtable_block = new byte[] { 0x01 };
         public static readonly byte[] systemtable_info = new byte[] { 0x00 };
-        private void QuickFixHeight(byte[] data)
-        {
 
-        }
+        //写入操作需要保持线性，线程安全
         private void WriteUnsafe(WriteTask task)
         {
-            using (var wb = new WriteBatch(this.db, snapshotLast))
+            lock (systemtable_block)
             {
-                foreach (var item in task.items)
+                using (var wb = new WriteBatch(this.db, snapshotLast))
                 {
-                    if (item.value != null)
+                    var heightbuf = BitConverter.GetBytes(snapshotLast.DataHeight);
+                    foreach (var item in task.items)
                     {
-                        QuickFixHeight(item.value);
+                        if (item.value != null)
+                        {
+                            DBValue.QuickFixHeight(item.value, heightbuf);
+                        }
+                        switch (item.op)
+                        {
+                            case WriteTaskOP.CreateTable:
+                                wb.CreateTable(item.tableID, item.value);
+                                break;
+                            case WriteTaskOP.DeleteTable:
+                                wb.DeleteTable(item.tableID);
+                                break;
+                            case WriteTaskOP.PutValue:
+                                wb.PutUnsafe(item.tableID, item.key, item.value);
+                                break;
+                            case WriteTaskOP.DeleteValue:
+                                wb.Delete(item.tableID, item.key);
+                                break;
+                            case WriteTaskOP.Log:
+                                break;
+                        }
                     }
-                    switch (item.op)
-                    {
-                        case WriteTaskOP.CreateTable:
-                            wb.CreateTable(item.tableID, item.value);
-                            break;
-                        case WriteTaskOP.DeleteTable:
-                            wb.DeleteTable(item.tableID);
-                            break;
-                        case WriteTaskOP.PutValue:
-                            wb.PutUnsafe(item.tableID, item.key, item.value);
-                            break;
-                        case WriteTaskOP.DeleteValue:
-                            wb.Delete(item.tableID, item.key);
-                            break;
-                        case WriteTaskOP.Log:
-                            break;
-                    }
+                    var taskblock = task.ToBytes();
+                    //还要把这个block本身写入，高度写入
+                    var finaldata = DBValue.FromValue(DBValue.Type.Bytes, taskblock).ToBytes();
+                    DBValue.QuickFixHeight(finaldata, heightbuf);
+                    var blockkey = BitConverter.GetBytes(snapshotLast.DataHeight);
+                    wb.PutUnsafe(systemtable_block, blockkey, finaldata);
+                    //wb.Put(systemtable_block, height, taskblock);
+
+                    //height++
+                    var finalheight = DBValue.FromValue(DBValue.Type.UINT64, (ulong)(snapshotLast.DataHeight + 1)).ToBytes();
+                    DBValue.QuickFixHeight(finalheight, heightbuf);
+                    wb.PutUnsafe(systemtable_info, "_height".ToBytes_UTF8Encode(), finalheight);
+
+
+                    this.db.Write(wb.batch);
+                    snapshotLast.Dispose();
+                    snapshotLast = CreateSnapInfo();
+                    snapshotLast.AddRef();
                 }
-                var taskblock = task.ToBytes();
-                //还要把这个block本身写入，高度写入
-                var finaldata = DBValue.FromValue(DBValue.Type.Bytes, taskblock).ToBytes();
-                QuickFixHeight(finaldata);
-                var blockkey = BitConverter.GetBytes(snapshotLast.DataHeight);
-                wb.PutUnsafe(systemtable_block, blockkey, finaldata);
-                //wb.Put(systemtable_block, height, taskblock);
-
-                //height++
-                var finalheight = DBValue.FromValue(DBValue.Type.UINT64, (ulong)(snapshotLast.DataHeight + 1)).ToBytes();
-                QuickFixHeight(finalheight);
-                wb.PutUnsafe(systemtable_info, "_height".ToBytes_UTF8Encode(), finalheight);
-
-
-                this.db.Write(wb.batch);
-                snapshotLast.Dispose();
-                snapshotLast = CreateSnapInfo();
-                snapshotLast.AddRef();
             }
         }
         public void Write(WriteTask task)

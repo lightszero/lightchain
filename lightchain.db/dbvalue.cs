@@ -25,12 +25,23 @@ namespace lightchain.db
         }
         public Type type;
         public byte[] tag;
-        public ulong timestamp;//最后修改高度
+        public ulong lastHeight;//最后修改高度
         public byte[] value;
         public object typedvalue;
         private DBValue()
         {
 
+        }
+        public static void QuickFixHeight(byte[] data,byte[] heightbuf)
+        {
+            //var v = data[0];
+            var tagLength = data[1];
+            //var timestamp = BitConverter.ToUInt64(data, 2 + taglength);
+            for(var i=0;i<8;i++)
+            {
+                data[tagLength + 2 + i] = heightbuf[i];
+            }
+            //var timestamp2 = BitConverter.ToUInt64(data, 2 + taglength);
         }
         public static DBValue DeletedValue
         {
@@ -41,7 +52,7 @@ namespace lightchain.db
                 v.tag = new byte[0];
                 v.value = new byte[0];
                 v.typedvalue = null;
-                v.timestamp = 0;
+                v.lastHeight = 0;
                 return v;
             }
         }
@@ -116,7 +127,7 @@ namespace lightchain.db
                 v.tag[i] = data[i + 2];
             }
             //read last
-            v.timestamp = BitConverter.ToUInt64(data, 2 + v.tag.Length);
+            v.lastHeight = BitConverter.ToUInt64(data, 2 + v.tag.Length);
 
             //read value
             v.value = new byte[data.Length - 2 - v.tag.Length - 8];
@@ -139,7 +150,7 @@ namespace lightchain.db
                 data[i + 2] = this.tag[i];
             }
             //write last
-            byte[] last = BitConverter.GetBytes(this.timestamp);
+            byte[] last = BitConverter.GetBytes(this.lastHeight);
             for (var i = 0; i < 8; i++)
             {
                 data[2 + this.tag.Length + i] = last[i];
