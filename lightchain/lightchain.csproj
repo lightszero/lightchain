@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\httpserver\httpserver.csproj" />
-    <ProjectReference Include="..\lightchain.db\lightdb.csproj" />
+    <ProjectReference Include="..\lightdb\lightdb.csproj" />
     <ProjectReference Include="..\thinsdk.neo\thinsdk.neo.csproj" />
   </ItemGroup>
 
