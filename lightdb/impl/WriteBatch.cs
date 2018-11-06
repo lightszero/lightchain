@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace lightchain.db
+namespace LightDB
 {
     /// <summary>
     /// WriteBatch 写入批，是个很基本的功能，不应该对外暴露

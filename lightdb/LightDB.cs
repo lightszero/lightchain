@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace lightchain.db
+namespace LightDB
 {
 
     public class DBCreateOption

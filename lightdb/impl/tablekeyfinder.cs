@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace lightchain.db
+namespace LightDB
 {
     class TableKeyFinder : IEnumerable<byte[]>
     {

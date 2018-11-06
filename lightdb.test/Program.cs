@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace lightchain.db.test
+namespace LightDB.test
 {
     class Program
     {
@@ -19,7 +19,7 @@ namespace lightchain.db.test
             AddMenu("test.db.enumblock", "enum every writeblock", test_db_enumblock);
             AddMenu("test.db.checkpoint", "make a checkpoint db", test_db_checkpoint);
         }
-        static lightchain.db.LightDB db = null;
+        static LightDB db = null;
         static void test_db_open(string[] words)
         {
             try
@@ -66,7 +66,7 @@ namespace lightchain.db.test
                 {
                     var writetask = db.CreateWriteTask();
                     {
-                        var info = new lightchain.db.TableInfo(
+                        var info = new TableInfo(
                             new byte[] { 0x01, 0x02, 0x03 },//tableid 是区分表格的数据，至少长度2，太短的不允许
                                                             //下面三个参数都是提供表的信息，无所谓什么
                             "mytable",//tablename 
@@ -186,8 +186,11 @@ namespace lightchain.db.test
         }
         static void test_db_checkpoint(string[] words)
         {
+            //建立当前数据库的副本
             db.CheckPoint("d:\\db_cp001");
+            //根据rocksdb的说明，这个建立副本贼鸡儿高效
 
+            //然后就从这个数据库读了，这是作为历史记录的数据库，对他只读，别去瞎几把改
             var db2 = new LightDB();
             db2.OpenRead("d:\\db_cp001");
 
