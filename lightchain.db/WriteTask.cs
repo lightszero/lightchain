@@ -90,7 +90,7 @@ namespace lightchain.db
                         op = WriteTaskOP.CreateTable,
                         tableID = info.tableid,
                         key = null,
-                        value = info.ToBytes()
+                        value = DBValue.FromValue(DBValue.Type.Bytes, info.ToBytes()).ToBytes()
                     }
                 );
         }

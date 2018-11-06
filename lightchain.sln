@@ -18,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightchain", "lightchain\li
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightchain.db", "lightchain.db\lightchain.db.csproj", "{91E45BE4-069F-4ABB-85B3-B8A028687B98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lightchain.db.test", "lightchain.db.test\lightchain.db.test.csproj", "{950406DD-26F9-4949-8188-4809EF0D9E0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightchain.db.test", "lightchain.db.test\lightchain.db.test.csproj", "{950406DD-26F9-4949-8188-4809EF0D9E0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

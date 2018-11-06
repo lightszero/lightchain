@@ -10,11 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RocksDbNative" Version="5.4.6.10" />
-    <PackageReference Include="RocksDbSharp" Version="5.4.6.10" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\httpserver\httpserver.csproj" />
     <ProjectReference Include="..\thinsdk.neo\thinsdk.neo.csproj" />
   </ItemGroup>

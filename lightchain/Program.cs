@@ -8,17 +8,17 @@ namespace lightchain
 {
     class Program
     {
-        public static LightChainDB db;
+        //public static LightChainDB db;
         public static lightchain.httpserver.httpserver server;
         public static System.Collections.Generic.Dictionary<string, Action<string[]>> menuItem = new System.Collections.Generic.Dictionary<string, Action<string[]>>();
         public static System.Collections.Generic.Dictionary<string, string> menuDesc = new System.Collections.Generic.Dictionary<string, string>();
 
         static void Main(string[] args)
         {
-            db = new LightChainDB();
-            Console.WriteLine("lightchain " + db.Version);
+            //db = new LightChainDB();
+            //Console.WriteLine("lightchain " + db.Version);
 
-            db.Init("./testdb");
+            //db.Init("./testdb");
 
             server = new lightchain.httpserver.httpserver();
             server.SetWebsocketAction("/ws", (socket) => new websockerPeer(socket));
@@ -89,23 +89,23 @@ namespace lightchain
                 return;
             }
             var n = int.Parse(words[1]);
-            if (n == 1)
-            {
-                WriteBlock wblock = new WriteBlock();
-                for (var i = 0; i < 10; i++)
-                {
-                    var tableid = new byte[] { 1, (byte)i };
-                    wblock.ops.Add(new WriteOp_CreateTable(tableid, "testtable" + i, "testtable", DBValue.Type.String));
-                    db.WriteBlock(wblock);
-                }
+            //if (n == 1)
+            //{
+            //    WriteBlock wblock = new WriteBlock();
+            //    for (var i = 0; i < 10; i++)
+            //    {
+            //        var tableid = new byte[] { 1, (byte)i };
+            //        wblock.ops.Add(new WriteOp_CreateTable(tableid, "testtable" + i, "testtable", DBValue.Type.String));
+            //        db.WriteBlock(wblock);
+            //    }
                
-                //wblock.ops.Add(new WriteOp_CreateTable());
-                //for (var i=0;i<1000000;i++)
-                //{
-                //    var rb = db.CreateWriteBatch();
-                //   rb.Put()
-                //}
-            }
+            //    //wblock.ops.Add(new WriteOp_CreateTable());
+            //    //for (var i=0;i<1000000;i++)
+            //    //{
+            //    //    var rb = db.CreateWriteBatch();
+            //    //   rb.Put()
+            //    //}
+            //}
         }
         static void Other1(string[] words)
         {

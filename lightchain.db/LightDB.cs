@@ -19,8 +19,11 @@ namespace lightchain.db
 
 
         RocksDbSharp.RocksDb db;
+        IntPtr defaultWriteOpPtr;
         public void Open(string path, DBCreateOption createOption = null)
         {
+            this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
+
             RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
             option.SetCreateIfMissing(true);
             option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
@@ -137,8 +140,8 @@ namespace lightchain.db
                     DBValue.QuickFixHeight(finalheight, heightbuf);
                     wb.PutUnsafe(systemtable_info, "_height".ToBytes_UTF8Encode(), finalheight);
 
-
-                    this.db.Write(wb.batch);
+                    RocksDbSharp.Native.Instance.rocksdb_write(this.db.Handle, this.defaultWriteOpPtr, wb.batchptr);
+                    //this.db.Write(wb.batch);
                     snapshotLast.Dispose();
                     snapshotLast = CreateSnapInfo();
                     snapshotLast.AddRef();

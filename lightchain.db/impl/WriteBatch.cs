@@ -12,21 +12,25 @@ namespace lightchain.db
         public WriteBatch(RocksDbSharp.RocksDb db, SnapShot snapshot)
         {
             this.db = db;
-            this.batch = new RocksDbSharp.WriteBatch();
+            this.batchptr = RocksDbSharp.Native.Instance.rocksdb_writebatch_create();
+            //this.batch = new RocksDbSharp.WriteBatch();
             this.snapshot = snapshot;
             this.cache = new Dictionary<string, byte[]>();
         }
         RocksDbSharp.RocksDb db;
         SnapShot snapshot;
-        public RocksDbSharp.WriteBatch batch;
+        //public RocksDbSharp.WriteBatch batch;
+        public IntPtr batchptr;
         Dictionary<string, byte[]> cache;
 
         public void Dispose()
         {
-            if (batch != null)
+            if (batchptr != IntPtr.Zero)
             {
-                batch.Dispose();
-                batch = null;
+                RocksDbSharp.Native.Instance.rocksdb_writebatch_destroy(batchptr);
+                batchptr = IntPtr.Zero;
+                //batch.Dispose();
+                //batch = null;
             }
         }
         public byte[] GetDataFinal(byte[] finalkey)
@@ -47,13 +51,15 @@ namespace lightchain.db
         {
             var hexkey = finalkey.ToString_Hex();
             cache[hexkey] = value;
-            batch.Put(finalkey, value);
+            RocksDbSharp.Native.Instance.rocksdb_writebatch_put(batchptr, finalkey, (ulong)finalkey.Length, value, (ulong)value.Length);
+            //batch.Put(finalkey, value);
         }
         private void DeleteFinal(byte[] finalkey)
         {
             var hexkey = finalkey.ToString_Hex();
             cache.Remove(hexkey);
-            batch.Delete(finalkey);
+            RocksDbSharp.Native.Instance.rocksdb_writebatch_delete(batchptr, finalkey, (ulong)finalkey.Length);
+            //batch.Delete(finalkey);
         }
         public void CreateTable(TableInfo info)
         {
@@ -68,7 +74,7 @@ namespace lightchain.db
             PutDataFinal(finalkey, value.ToBytes());
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
         }
-        public void CreateTable(byte[] tableid, byte[] infodata)
+        public void CreateTable(byte[] tableid, byte[] finaldata)
         {
             var finalkey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
             var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
@@ -77,8 +83,8 @@ namespace lightchain.db
             {
                 throw new Exception("alread have that.");
             }
-            var value = DBValue.FromValue(DBValue.Type.Bytes, infodata);
-            PutDataFinal(finalkey, value.ToBytes());
+            //var value = DBValue.FromValue(DBValue.Type.Bytes, infodata);
+            PutDataFinal(finalkey, finaldata);
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
         }
         public void DeleteTable(byte[] tableid, bool makeTag = false)
