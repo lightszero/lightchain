@@ -20,10 +20,10 @@ namespace lightchain.db
 
         RocksDbSharp.RocksDb db;
         IntPtr defaultWriteOpPtr;
+        IntPtr defaultReadOpPtr;
         public void Open(string path, DBCreateOption createOption = null)
         {
             this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
-
             RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
             option.SetCreateIfMissing(true);
             option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
@@ -35,6 +35,15 @@ namespace lightchain.db
                 InitFirstBlock(createOption);
             }
             snapshotLast.AddRef();
+        }
+        public void CheckPoint(string path)
+        {
+            IntPtr cp =
+           RocksDbSharp.Native.Instance.rocksdb_checkpoint_object_create(db.Handle);
+
+            RocksDbSharp.Native.Instance.rocksdb_checkpoint_create(cp, path, 1024 * 1024 * 4);
+
+            RocksDbSharp.Native.Instance.rocksdb_checkpoint_object_destroy(cp);
         }
 
         private void InitFirstBlock(DBCreateOption createOption)
@@ -100,7 +109,7 @@ namespace lightchain.db
         {
             lock (systemtable_block)
             {
-                using (var wb = new WriteBatch(this.db, snapshotLast))
+                using (var wb = new WriteBatch(this.db.Handle, snapshotLast))
                 {
                     var heightbuf = BitConverter.GetBytes(snapshotLast.DataHeight);
                     foreach (var item in task.items)

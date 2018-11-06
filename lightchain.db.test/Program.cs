@@ -17,6 +17,7 @@ namespace lightchain.db.test
             AddMenu("test.db.tableinfo", "get a table info", test_db_tableinfo);
             AddMenu("test.db.tableserach", "serach a table", test_db_tableserach);
             AddMenu("test.db.enumblock", "enum every writeblock", test_db_enumblock);
+            AddMenu("test.db.checkpoint", "make a checkpoint db", test_db_checkpoint);
         }
         static lightchain.db.LightDB db = null;
         static void test_db_open(string[] words)
@@ -182,6 +183,10 @@ namespace lightchain.db.test
             {
                 Console.WriteLine("error:" + err.Message);
             }
+        }
+        static void test_db_checkpoint(string[] words)
+        {
+            db.CheckPoint("d:\\db_cp001");
         }
         static void test_db_enumblock(string[] words)
         {

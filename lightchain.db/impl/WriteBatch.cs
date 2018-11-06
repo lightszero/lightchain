@@ -9,15 +9,16 @@ namespace lightchain.db
     /// </summary>
     class WriteBatch : IDisposable
     {
-        public WriteBatch(RocksDbSharp.RocksDb db, SnapShot snapshot)
+        public WriteBatch(IntPtr dbptr, SnapShot snapshot)
         {
-            this.db = db;
+            this.dbPtr = dbptr;
             this.batchptr = RocksDbSharp.Native.Instance.rocksdb_writebatch_create();
             //this.batch = new RocksDbSharp.WriteBatch();
             this.snapshot = snapshot;
             this.cache = new Dictionary<string, byte[]>();
         }
-        RocksDbSharp.RocksDb db;
+        //RocksDbSharp.RocksDb db;
+        public IntPtr dbPtr;
         SnapShot snapshot;
         //public RocksDbSharp.WriteBatch batch;
         public IntPtr batchptr;
@@ -42,7 +43,8 @@ namespace lightchain.db
             }
             else
             {
-                var data = db.Get(finalkey, null, snapshot.readop);
+                var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshot.readop.Handle, finalkey, finalkey.Length);
+                //db.Get(finalkey, null, snapshot.readop);
                 cache[hexkey] = data;
                 return data;
             }
