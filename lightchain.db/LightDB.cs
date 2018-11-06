@@ -20,9 +20,10 @@ namespace lightchain.db
 
         RocksDbSharp.RocksDb db;
         IntPtr defaultWriteOpPtr;
-        IntPtr defaultReadOpPtr;
         public void Open(string path, DBCreateOption createOption = null)
         {
+            if (db != null)
+                throw new Exception("already open a db.");
             this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
             RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
             option.SetCreateIfMissing(true);
@@ -35,6 +36,20 @@ namespace lightchain.db
                 InitFirstBlock(createOption);
             }
             snapshotLast.AddRef();
+        }
+        public void OpenRead(string path)
+        {
+            if (db != null)
+                throw new Exception("already open a db.");
+            this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
+            RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
+            option.SetCreateIfMissing(false);
+            option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
+            this.db = RocksDbSharp.RocksDb.OpenReadOnly(option, path, true);
+
+            snapshotLast = CreateSnapInfo();
+            snapshotLast.AddRef();
+
         }
         public void CheckPoint(string path)
         {

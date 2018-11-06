@@ -187,6 +187,16 @@ namespace lightchain.db.test
         static void test_db_checkpoint(string[] words)
         {
             db.CheckPoint("d:\\db_cp001");
+
+            var db2 = new LightDB();
+            db2.OpenRead("d:\\db_cp001");
+
+            var snap = db2.UseSnapShot();
+
+            var table = snap.GetTableInfo(new byte[] { 01, 02, 03 });
+            Console.WriteLine("db2 table=" + table.tablename);
+
+            Console.WriteLine("db2 dataheight=" + snap.DataHeight);
         }
         static void test_db_enumblock(string[] words)
         {
