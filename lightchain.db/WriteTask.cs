@@ -127,7 +127,7 @@ namespace lightchain.db
             items.Add(
                     new WriteTaskItem()
                     {
-                        op = WriteTaskOP.PutValue,
+                        op = WriteTaskOP.DeleteValue,
                         tableID = tableid,
                         key = key,
                         value = null
