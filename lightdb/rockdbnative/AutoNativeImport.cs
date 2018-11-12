@@ -401,11 +401,13 @@ namespace NativeImport
                 }
                 catch (TargetInvocationException tie)
                 {
+                    Console.WriteLine("loaddll err: in " + spec.Path);
                     spec.Error = tie.InnerException;
                     continue;
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("loaddll err: in " + spec.Path);
                     spec.Error = e;
                     continue;
                 }
