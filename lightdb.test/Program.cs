@@ -7,6 +7,13 @@ namespace LightDB.test
     {
         static void InitMenu()
         {
+            //把当前目录搞对，怎么启动都能找到dll了
+            var lastpath = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location); ;
+            Console.WriteLine("lastpath=" + lastpath);
+            Environment.CurrentDirectory = lastpath;
+
+            test_db_open(null);
+
             AddMenu("exit", "exit application", (words) => { Environment.Exit(0); });
             AddMenu("help", "show help", ShowMenu);
             AddMenu("test.db.open", "open/create a db on a path", test_db_open);

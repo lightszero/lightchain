@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="libsnappy.so.1.1.5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="native\librocksdb-5.17.0.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
