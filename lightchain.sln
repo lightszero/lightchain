@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightdb", "lightdb\lightdb.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lightdb.test", "lightdb.test\lightdb.test.csproj", "{BF3EB8DA-7457-4922-BC8F-C773281214BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "thinsdk.neo.test", "thinsdk.neo.test\thinsdk.neo.test.csproj", "{FFEEE5BC-6B05-4104-825F-433C1508CEF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{BF3EB8DA-7457-4922-BC8F-C773281214BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF3EB8DA-7457-4922-BC8F-C773281214BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF3EB8DA-7457-4922-BC8F-C773281214BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFEEE5BC-6B05-4104-825F-433C1508CEF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFEEE5BC-6B05-4104-825F-433C1508CEF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFEEE5BC-6B05-4104-825F-433C1508CEF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFEEE5BC-6B05-4104-825F-433C1508CEF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

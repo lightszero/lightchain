@@ -184,10 +184,10 @@ namespace ThinNeo
         }
         public static byte[] Sign(byte[] message, byte[] prikey)
         {
-            var Secp256r1_G = Helper.HexString2Bytes("04" + "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296" + "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5");
+            //var Secp256r1_G = Helper.HexString2Bytes("04" + "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296" + "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5");
 
-            var PublicKey = ThinNeo.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
-            var pubkey = PublicKey.EncodePoint(false).Skip(1).ToArray();
+            //var PublicKey = ThinNeo.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
+            //var pubkey = PublicKey.EncodePoint(false).Skip(1).ToArray();
 
             var ecdsa = new ThinNeo.Cryptography.ECC.ECDsa(prikey, ThinNeo.Cryptography.ECC.ECCurve.Secp256r1);
             var hash = Helper.Sha256.ComputeHash(message);
@@ -228,6 +228,64 @@ namespace ThinNeo
             //    var hash = sha256.ComputeHash(message);
             //    return ecdsa.SignHash(hash);
             //}
+        }
+        public class Signer
+        {
+            ThinNeo.Cryptography.ECC.ECDsa ecdsa;
+            bool havePrivateKey;
+            public byte[] Sign(byte[] message)
+            {
+                var hash = Helper.Sha256.ComputeHash(message);
+                return SighHash(hash);// data1.Concat(data2).ToArray();
+            }
+            public bool Verify(byte[] message,byte[] signature)
+            {
+                var hash = Helper.Sha256.ComputeHash(message);
+                return VerifyHash(hash,signature);
+            }
+            public byte[] SighHash(byte[] hash)
+            {
+                var result = this.ecdsa.GenerateSignature(hash);
+                var data1 = result[0].ToByteArray();
+                if (data1.Length > 32)
+                    data1 = data1.Take(32).ToArray();
+                var data2 = result[1].ToByteArray();
+                if (data2.Length > 32)
+                    data2 = data2.Take(32).ToArray();
+
+                data1 = data1.Reverse().ToArray();
+                data2 = data2.Reverse().ToArray();
+
+                byte[] newdata = new byte[64];
+                Array.Copy(data1, 0, newdata, 32 - data1.Length, data1.Length);
+                Array.Copy(data2, 0, newdata, 64 - data2.Length, data2.Length);
+
+                return newdata;// data1.Concat(data2).ToArray();
+            }
+            public bool VerifyHash(byte[] hash, byte[] signature)
+            {
+                var b1 = signature.Take(32).Reverse().Concat(new byte[] { 0x00 }).ToArray();
+                var b2 = signature.Skip(32).Reverse().Concat(new byte[] { 0x00 }).ToArray();
+                var num1 = new BigInteger(b1);
+                var num2 = new BigInteger(b2);
+                return ecdsa.VerifySignature(hash, num1, num2);
+            }
+
+            public static Signer FromPriKey(byte[] prikey)
+            {
+                var s = new Signer();
+                s.ecdsa = new ThinNeo.Cryptography.ECC.ECDsa(prikey, ThinNeo.Cryptography.ECC.ECCurve.Secp256r1);
+                s.havePrivateKey = true;
+                return s;
+            }
+            public static Signer FromPubkey(byte[] pubkey)
+            {
+                var s = new Signer();
+                var PublicKey = ThinNeo.Cryptography.ECC.ECPoint.DecodePoint(pubkey, ThinNeo.Cryptography.ECC.ECCurve.Secp256r1);
+                s.ecdsa = new ThinNeo.Cryptography.ECC.ECDsa(PublicKey);
+                s.havePrivateKey = false;
+                return s;
+            }
         }
 
         public static bool VerifySignature(byte[] message, byte[] signature, byte[] pubkey)

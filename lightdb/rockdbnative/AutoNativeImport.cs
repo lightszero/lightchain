@@ -341,17 +341,18 @@ namespace NativeImport
             var type = typeBuilder.CreateTypeInfo();
 
             var versionParts = version.Split('.');
-            var names = versionParts.Select((p, i) => libName + "-" + string.Join(".", versionParts.Take(i + 1)))
-                .Reverse()
-                .Concat(Enumerable.Repeat(libName, 1));
+            var names =new string[]{ libName+"-"+ string.Join(".", versionParts)};
+            //versionParts.Select((p, i) => libName + "-" + string.Join(".", versionParts.Take(i + 1)))
+                //.Reverse()
+                //.Concat(Enumerable.Repeat(libName, 1)).ToArray();
 
             // try to load locally
             var paths = new[]
             {
-                Path.Combine("native", subdir),
+                //Path.Combine("native", subdir),
                 "native",
-                subdir,
-                "",
+                //subdir,
+                //"",
             };
 
             // If the RocksDbNative package is referenced, then dynamically load it here so that it can tell us where the native libraries are
@@ -396,6 +397,7 @@ namespace NativeImport
                     lib = importer.LoadLibrary(spec.Path);
                     if (lib == IntPtr.Zero)
                         throw new NativeLoadException("LoadLibrary returned 0", null);
+                    Console.WriteLine("loaddll in " + spec.Path);
                 }
                 catch (TargetInvocationException tie)
                 {
