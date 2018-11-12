@@ -27,14 +27,14 @@ namespace LightDB.test
                 Console.WriteLine("open db");
                 db = new LightDB();
                 //打开一个数据库，打开时如果不存在会创建一个
-                db.Open("d:\\db001");
+                db.Open("../db001");
             }
             catch
             {
                 //try
                 {
                     Console.WriteLine("create db");
-                    db.Open("d:\\db001", new DBCreateOption() { MagicStr = "hello world." });
+                    db.Open("../db001", new DBCreateOption() { MagicStr = "hello world." });
                 }
                 //catch (Exception err)
                 //{

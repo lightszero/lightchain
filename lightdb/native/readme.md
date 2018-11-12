@@ -1,1 +1,0 @@
-unpack .so file in 7z
