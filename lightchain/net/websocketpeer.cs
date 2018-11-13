@@ -10,17 +10,22 @@ namespace lightdb.server
     public class websockerPeer : lightchain.httpserver.httpserver.IWebSocketPeer
     {
         System.Net.WebSockets.WebSocket websocket;
+        
         public websockerPeer(System.Net.WebSockets.WebSocket websocket)
         {
             this.websocket = websocket;
         }
         public async Task OnConnect()
         {
+            Console.CursorLeft = 0;
+
             Console.WriteLine("websocket in:" + websocket.SubProtocol);
         }
 
         public async Task OnDisConnect()
         {
+            Console.CursorLeft = 0;
+
             Console.WriteLine("websocket gone:" + websocket.CloseStatus + "." + websocket.CloseStatusDescription);
 
         }

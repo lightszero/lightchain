@@ -10,13 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\httpserver\httpserver.csproj" />
     <ProjectReference Include="..\lightdb\lightdb.lib.csproj" />
     <ProjectReference Include="..\thinsdk.neo\lightdb.sdk.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="db\" />
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

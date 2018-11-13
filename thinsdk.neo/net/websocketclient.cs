@@ -32,6 +32,7 @@ namespace lightdb.sdk
             }
             catch (Exception err)
             {
+                Console.CursorLeft = 0;
                 Console.WriteLine("error on connect." + err.Message);
             }
             //recv
@@ -65,6 +66,8 @@ namespace lightdb.sdk
             }
             catch (Exception err)
             {
+                Console.CursorLeft = 0;
+
                 Console.WriteLine("error on recv.");
             }
             //disconnect
@@ -75,6 +78,8 @@ namespace lightdb.sdk
             }
             catch (Exception err)
             {
+                Console.CursorLeft = 0;
+
                 Console.WriteLine("error on disconnect.");
             }
 

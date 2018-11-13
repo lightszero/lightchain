@@ -1,0 +1,8 @@
+{
+  "server_port": 80,
+  "server_storage_path": "./rocksdb",
+  "server_type": "Master",
+  "storage_maindb_magic": "badboy",
+  "storage_maindb_firstwriter_address": "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz",
+  "nullinfo": ""
+}

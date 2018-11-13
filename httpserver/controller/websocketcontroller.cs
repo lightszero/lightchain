@@ -29,6 +29,7 @@ namespace lightchain.httpserver
                 }
                 catch
                 {
+                    Console.CursorLeft = 0;
                     Console.WriteLine("error on connect.");
                 }
                 try
@@ -56,6 +57,7 @@ namespace lightchain.httpserver
                 }
                 catch (Exception err)
                 {
+                    Console.CursorLeft = 0;
                     Console.WriteLine("error on recv.");
                 }
                 try
@@ -65,6 +67,7 @@ namespace lightchain.httpserver
                 }
                 catch (Exception err)
                 {
+                    Console.CursorLeft = 0;
                     Console.WriteLine("error on disconnect.");
                 }
 
