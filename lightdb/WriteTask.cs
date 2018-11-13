@@ -18,11 +18,15 @@ namespace LightDB
         public byte[] tableID;
         public byte[] key;
         public byte[] value;
+        public override string ToString()
+        {
+            return op.ToString() + " tid=" + tableID?.ToString_Hex() + ",key=" + key?.ToString_Hex() + ",value=" + value?.ToString_Hex();
+        }
         public void Pack(System.IO.Stream stream)
         {
             byte lenID = tableID == null ? (byte)0 : (byte)tableID.Length;
             byte lenKey = key == null ? (byte)0 : (byte)key.Length;
-            UInt32 lenValue = key == null ? 0 : (UInt32)value.Length;
+            UInt32 lenValue = value == null ? 0 : (UInt32)value.Length;
             stream.WriteByte((byte)op);
             stream.WriteByte(lenID);
             stream.WriteByte(lenKey);

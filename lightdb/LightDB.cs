@@ -82,6 +82,7 @@ namespace LightDB
                         writetask.items.Add(t);
                     }
                 }
+                writetask.Put(systemtable_info, "_magic_".ToBytes_UTF8Encode(), DBValue.FromValue(DBValue.Type.String, createOption.MagicStr));
                 this.WriteUnsafe(writetask);
             }
         }
