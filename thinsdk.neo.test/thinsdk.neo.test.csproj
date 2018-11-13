@@ -51,9 +51,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\thinsdk.neo\thinsdk.neo.csproj">
+    <ProjectReference Include="..\thinsdk.neo\lightdb.sdk.csproj">
       <Project>{73a360eb-ad9b-40d4-b794-24c037f7a137}</Project>
-      <Name>thinsdk.neo</Name>
+      <Name>lightdb.sdk</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

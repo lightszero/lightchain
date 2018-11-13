@@ -33,23 +33,25 @@ namespace lightchain.httpserver
                 }
                 try
                 {
-                    System.IO.MemoryStream ms = new System.IO.MemoryStream(1024 * 1024);
-                    while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
+                    using (System.IO.MemoryStream ms = new System.IO.MemoryStream(1024 * 1024))
                     {
-                        ArraySegment<byte> buffer = System.Net.WebSockets.WebSocket.CreateServerBuffer(1024);
-                        var recv = await websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
-                        ms.Write(buffer.Array, buffer.Offset, recv.Count);
-                        if (recv.EndOfMessage)
+                        while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
                         {
-                            var count = ms.Position;
-                            var bytes = new byte[count];
-                            ms.Position = 0;
-                            ms.Read(bytes, 0, (int)count);
+                            ArraySegment<byte> buffer = System.Net.WebSockets.WebSocket.CreateServerBuffer(1024);
+                            var recv = await websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
+                            ms.Write(buffer.Array, buffer.Offset, recv.Count);
+                            if (recv.EndOfMessage)
+                            {
+                                var count = ms.Position;
+                                //var bytes = new byte[count];
+                                ms.Position = 0;
+                                //ms.Read(bytes, 0, (int)count);
 
-                            ms.Position = 0;
-                            await peer.OnRecv(bytes);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+                                //ms.Position = 0;
+                                await peer.OnRecv(ms,(int)count);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+                            }
+                            //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
                         }
-                        //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
                     }
                 }
                 catch (Exception err)

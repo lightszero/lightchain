@@ -106,7 +106,7 @@ namespace lightchain.httpserver
         public interface IWebSocketPeer
         {
             Task OnConnect();
-            Task OnRecv(byte[] message);
+            Task OnRecv(System.IO.MemoryStream stream,int count);
             Task OnDisConnect();
         }
         public delegate IWebSocketPeer deleWebSocketCreator(System.Net.WebSockets.WebSocket websocket);

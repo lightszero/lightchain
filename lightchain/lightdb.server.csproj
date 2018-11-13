@@ -11,8 +11,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\httpserver\httpserver.csproj" />
-    <ProjectReference Include="..\lightdb\lightdb.csproj" />
-    <ProjectReference Include="..\thinsdk.neo\thinsdk.neo.csproj" />
+    <ProjectReference Include="..\lightdb\lightdb.lib.csproj" />
+    <ProjectReference Include="..\thinsdk.neo\lightdb.sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="db\" />
   </ItemGroup>
 
 </Project>

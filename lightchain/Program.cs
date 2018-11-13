@@ -1,10 +1,10 @@
-﻿using lightchain.db;
+﻿
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace lightchain
+namespace lightdb.server
 {
     class Program
     {
