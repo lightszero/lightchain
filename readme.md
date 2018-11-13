@@ -1,4 +1,19 @@
 # lightchain
+
+## 变动
+
+由于是一个db,只是引入了一部分blockchain的机制，所以把名字统一一下吧
+
+lightdb.lib 对rocksdb的本地化封装，简化暂时用不到的接口，加上数据类型，最后写入高度这些信息，支持table的概念，一个库里存多份不同的字典
+
+lightdb.server 数据库服务器，websockets连接
+
+lightdb.sdk 供客户端连接服务器用的帮助类库
+
+httpserver 服务器模块
+
+lightdb.testclient 一个数据库示例
+
 ## lightchain 是什么
 由于最近从事区块链方面的工作
 
