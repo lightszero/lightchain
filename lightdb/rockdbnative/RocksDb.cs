@@ -147,11 +147,11 @@ namespace RocksDbSharp
             // See rocksdb_create_iterators
         }
 
-        public Snapshot CreateSnapshot()
-        {
-            IntPtr snapshotHandle = Native.Instance.rocksdb_create_snapshot(Handle);
-            return new Snapshot(Handle, snapshotHandle);
-        }
+        //public Snapshot CreateSnapshot()
+        //{
+        //    IntPtr snapshotHandle = Native.Instance.rocksdb_create_snapshot(Handle);
+        //    return new Snapshot(Handle, snapshotHandle);
+        //}
 
         public static IEnumerable<string> ListColumnFamilies(DbOptions options, string name)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RocksDbSharp;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,8 +18,12 @@ namespace LightDB
         public void Init()
         {
             this.readop = new RocksDbSharp.ReadOptions();
-            this.snapshot = db.CreateSnapshot();
-            this.readop.SetSnapshot(this.snapshot);
+
+            snapshotHandle = Native.Instance.rocksdb_create_snapshot(db.Handle);
+            Native.Instance.rocksdb_readoptions_set_snapshot(readop.Handle, snapshotHandle);
+
+            //this.snapshot = db.CreateSnapshot();
+            //this.readop.SetSnapshot(this.snapshot);
             var _height = GetValue(LightDB.systemtable_info, "_height".ToBytes_UTF8Encode());
             if (_height == null || _height.type == DBValue.Type.Deleted)
             {
@@ -32,7 +37,8 @@ namespace LightDB
         int refCount = 0;
         public RocksDbSharp.RocksDb db;
         public RocksDbSharp.ReadOptions readop;
-        public RocksDbSharp.Snapshot snapshot;
+        public IntPtr snapshotHandle=IntPtr.Zero;
+        //public RocksDbSharp.Snapshot snapshot;
         public UInt64 DataHeight
         {
             get;
@@ -40,13 +46,14 @@ namespace LightDB
         }
         public void Dispose()
         {
-            lock (snapshot)
+            lock (this)
             {
                 refCount--;
-                if (refCount == 0 && snapshot != null)
+                if (refCount == 0 && snapshotHandle != IntPtr.Zero)
                 {
-                    snapshot.Dispose();
-                    snapshot = null;
+                    Native.Instance.rocksdb_release_snapshot(db.Handle, snapshotHandle);
+                    //snapshot.Dispose();
+                    snapshotHandle = IntPtr.Zero;
                     readop = null;
                 }
             }
@@ -56,7 +63,7 @@ namespace LightDB
         /// </summary>
         public void AddRef()
         {
-            lock (snapshot)
+            lock (this)
             {
                 refCount++;
             }

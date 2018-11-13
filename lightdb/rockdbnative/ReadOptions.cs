@@ -44,11 +44,11 @@ namespace RocksDbSharp
             return this;
         }
 
-        public ReadOptions SetSnapshot(Snapshot snapshot)
-        {
-            Native.Instance.rocksdb_readoptions_set_snapshot(Handle, snapshot.Handle);
-            return this;
-        }
+        //public ReadOptions SetSnapshot(Snapshot snapshot)
+        //{
+        //    Native.Instance.rocksdb_readoptions_set_snapshot(Handle, snapshot.Handle);
+        //    return this;
+        //}
 
         public unsafe ReadOptions SetIterateUpperBound(byte* key, ulong keylen)
         {

@@ -290,12 +290,12 @@ namespace RocksDbSharp
         ///
         /// Default: nullptr
         /// </summary>
-        public ColumnFamilyOptions SetPrefixExtractor(SliceTransform sliceTransform)
-        {
-            References.PrefixExtractor = sliceTransform;
-            Native.Instance.rocksdb_options_set_prefix_extractor(Handle, sliceTransform.Handle);
-            return this;
-        }
+        //public ColumnFamilyOptions SetPrefixExtractor(SliceTransform sliceTransform)
+        //{
+        //    References.PrefixExtractor = sliceTransform;
+        //    Native.Instance.rocksdb_options_set_prefix_extractor(Handle, sliceTransform.Handle);
+        //    return this;
+        //}
 
         /// <summary>
         /// Number of levels for this database
