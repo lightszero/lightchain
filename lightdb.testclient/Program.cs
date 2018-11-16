@@ -6,6 +6,9 @@ namespace lightdb.testclient
 {
     class Program
     {
+
+        static lightdb.sdk.Client client = new lightdb.sdk.Client();
+
         static void Main(string[] args)
         {
             StartClient();
@@ -26,40 +29,36 @@ namespace lightdb.testclient
                     return;
 
                 }
+                if (line == "p")
+                    await ping();
             }
+        }
+        static async Task ping()
+        {
+            var pingms = await client.Ping();
+            Console.WriteLine("ping=" + pingms);
         }
         static async void StartClient()
         {
-            await lightdb.sdk.Client.Start(new Uri("ws://127.0.0.1:80/ws"), new Peer());
-        }
-
-
-    }
-    class Peer : lightdb.sdk.IWebSocketPeer
-    {
-        System.Net.WebSockets.WebSocket websocket;
-        public async Task OnConnect(System.Net.WebSockets.WebSocket websocket)
-        {
-            this.websocket = websocket;
+            client.OnDisconnect += async () =>
+            {
+                Console.WriteLine("OnDisConnect.");
+            };
+            client.OnRecv_Unknown += async (msg) =>
+              {
+                  Console.WriteLine("got unknown msg:" + msg.Cmd);
+              };
+            await client.Connect(new Uri("ws://127.0.0.1:80/ws"));
             Console.WriteLine("connected.");
-            var msg = sdk.NetMessage.Create("_ping");
-            msg.Params["_id"] = new byte[4];
-            await Send(msg);
-        }
-        private async Task Send(sdk.NetMessage msg)
-        {
-            await websocket.SendAsync(msg.ToBytes(), System.Net.WebSockets.WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
-        }
-        public async Task OnDisConnect()
-        {
-            Console.WriteLine("OnDisConnect.");
-            this.websocket = null;
+
+            for (var i = 0; i < 1; i++)
+            {
+                await ping();
+            }
         }
 
-        public async Task OnRecv(lightdb.sdk.NetMessage msg)
-        {
-            Console.WriteLine("msg got=" + msg.Cmd);
-        }
+
     }
+
 
 }

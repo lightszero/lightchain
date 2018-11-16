@@ -41,18 +41,21 @@ namespace lightdb.server
             if (pend - p > recvcount)
                 throw new Exception("error net message.");
 
+            var iddata = msg.Params["_id"];
+            if (iddata.Length != 8)
+                throw new Exception("error net message _id");
+
             switch (msg.Cmd)
             {
                 case "_ping":
-                    await OnPing(msg);
+                    await OnPing(msg, iddata);
                     break;
                 default:
                     throw new Exception("unknown msg cmd:" + msg.Cmd);
             }
         }
-        public async Task OnPing(NetMessage msgRecv)
+        public async Task OnPing(NetMessage msgRecv,byte[] id)
         {
-            var id = msgRecv.Params["_id"];
             var msg = NetMessage.Create("_pingback");
             msg.Params["_id"] = id;
 
