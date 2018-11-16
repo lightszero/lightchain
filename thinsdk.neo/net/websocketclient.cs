@@ -32,6 +32,8 @@ namespace lightdb.sdk
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, sdk.NetMessage> gotMessage
             = new System.Collections.Concurrent.ConcurrentDictionary<ulong, NetMessage>();
 
+        System.Collections.Concurrent.ConcurrentQueue<byte[]> wantsend = new System.Collections.Concurrent.ConcurrentQueue<byte[]>();
+
         /// <summary>
         /// 链接
         /// </summary>
@@ -53,7 +55,7 @@ namespace lightdb.sdk
             }
             //此时调用一个不等待的msgprocessr
             MessageProcesser();
-
+            MessageSender();
 
             return;
         }
@@ -93,24 +95,29 @@ namespace lightdb.sdk
 
             //想要这个消息
             wantMessage[_id] = backcmd;
-            var bytes = msg.ToBytes().Clone() as byte[];
-            ArraySegment<byte> buffer = new ArraySegment<byte>(bytes);
-            await websocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
 
+            //加入发送队列
+            wantsend.Enqueue(msg.ToBytes());
+            //var bytes = msg.ToBytes().Clone() as byte[];
+            //ArraySegment<byte> buffer = new ArraySegment<byte>(bytes);
+            //await websocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
 
-            return null;// await Wait(_id);
-        }
-        private async Task<NetMessage> Wait(UInt64 _id)
-        {
             while (true)
             {
-                if (gotMessage.TryGetValue(_id, out NetMessage msg))
+                if (gotMessage.TryRemove(_id, out NetMessage recvmsg))
                 {
-                    return msg;
+                    return recvmsg;
                 }
-                await Task.Delay(1);
+                await Task.Delay(10);
             }
+
+            //await Task.Delay(1);
+            //return  await Wait(_id);
         }
+        //private async Task<NetMessage> Wait(UInt64 _id)
+        //{
+          
+        //}
         async Task OnRecv(NetMessage message)
         {
             //如果有id
@@ -139,6 +146,30 @@ namespace lightdb.sdk
             await this?.OnRecv_Unknown(message);
 
         }
+        async void MessageSender()
+        {
+            try
+            {
+                while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    if (wantsend.TryDequeue(out byte[] data))
+                    {
+                        ArraySegment<byte> buffer = new ArraySegment<byte>(data);
+                        await websocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
+                    }
+                    else
+                    {
+                        await Task.Delay(1);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                Console.CursorLeft = 0;
+
+                Console.WriteLine("error on recv." + err.Message);
+            }
+        }
         async void MessageProcesser()
         {
             //recv
@@ -151,21 +182,22 @@ namespace lightdb.sdk
                     while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
                     {
                         //ArraySegment<byte> buffer = System.Net.WebSockets.WebSocket.CreateServerBuffer(1024);
-                        var recv =  await websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
+                        var recv = await websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
                         ms.Write(buf, 0, recv.Count);
                         if (recv.EndOfMessage)
                         {
                             var count = ms.Position;
-                            //var bytes = new byte[count];
+
+
                             ms.Position = 0;
-                            //ms.Read(bytes, 0, (int)count);
-
-                            //ms.Position = 0;
-
                             var msg = NetMessage.Unpack(ms);
+                            Console.WriteLine("got msg:" + msg.Cmd);
                             var posend = ms.Position;
                             if (posend != count)
                                 throw new Exception("error msg.");
+
+                            //重置pos
+                            ms.Position = 0;
                             await OnRecv(msg);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
                         }
                         //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);

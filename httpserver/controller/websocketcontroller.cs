@@ -36,22 +36,23 @@ namespace lightchain.httpserver
                 {
                     using (System.IO.MemoryStream ms = new System.IO.MemoryStream(1024 * 1024))
                     {
+                        byte[] buf = new byte[1024];
+                        ArraySegment<byte> buffer = new ArraySegment<byte>(buf);
                         while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
                         {
-                            ArraySegment<byte> buffer = System.Net.WebSockets.WebSocket.CreateServerBuffer(1024);
+                            
                             var recv = await websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
                             ms.Write(buffer.Array, buffer.Offset, recv.Count);
                             if (recv.EndOfMessage)
                             {
                                 var count = ms.Position;
-                                //var bytes = new byte[count];
-                                ms.Position = 0;
-                                //ms.Read(bytes, 0, (int)count);
 
-                                //ms.Position = 0;
+                                ms.Position = 0;
                                 await peer.OnRecv(ms,(int)count);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+
+
+                                ms.Position = 0;
                             }
-                            //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
                         }
                     }
                 }

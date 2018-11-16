@@ -30,7 +30,10 @@ namespace lightdb.testclient
 
                 }
                 if (line == "p")
+                {
                     await ping();
+                    continue;
+                }
             }
         }
         static async Task ping()
@@ -51,7 +54,7 @@ namespace lightdb.testclient
             await client.Connect(new Uri("ws://127.0.0.1:80/ws"));
             Console.WriteLine("connected.");
 
-            for (var i = 0; i < 1; i++)
+            for (var i = 0; i < 100; i++)
             {
                 await ping();
             }
