@@ -25,10 +25,15 @@ namespace LightDB
             if (db != null)
                 throw new Exception("already open a db.");
             this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
-            RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
-            option.SetCreateIfMissing(true);
-            option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
-            this.db = RocksDbSharp.RocksDb.Open(option, path);
+
+            var HandleOption = RocksDbSharp.Native.Instance.rocksdb_options_create();
+            RocksDbSharp.Native.Instance.rocksdb_options_set_create_if_missing(HandleOption, true);
+            RocksDbSharp.Native.Instance.rocksdb_options_set_compression(HandleOption, RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
+            //RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
+            //option.SetCreateIfMissing(true);
+            //option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
+            IntPtr handleDB = RocksDbSharp.Native.Instance.rocksdb_open(HandleOption, path);
+            this.db = new RocksDbSharp.RocksDb(handleDB);
 
             snapshotLast = CreateSnapInfo();
             if (snapshotLast.DataHeight == 0)

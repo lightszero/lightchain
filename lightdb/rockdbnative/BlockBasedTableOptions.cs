@@ -53,13 +53,13 @@ namespace RocksDbSharp
             return this;
         }
 
-        public BlockBasedTableOptions SetFilterPolicy(BloomFilterPolicy filterPolicy)
-        {
-            // store a managed reference to prevent garbage collection
-            References.FilterPolicy = filterPolicy;
-            Native.Instance.rocksdb_block_based_options_set_filter_policy(Handle, filterPolicy.Handle);
-            return this;
-        }
+        //public BlockBasedTableOptions SetFilterPolicy(BloomFilterPolicy filterPolicy)
+        //{
+        //    // store a managed reference to prevent garbage collection
+        //    References.FilterPolicy = filterPolicy;
+        //    Native.Instance.rocksdb_block_based_options_set_filter_policy(Handle, filterPolicy.Handle);
+        //    return this;
+        //}
 
         public BlockBasedTableOptions SetNoBlockCache(bool noBlockCache)
         {

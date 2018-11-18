@@ -183,7 +183,7 @@ namespace LightDB
                 var numkey = stream.ReadByte();
                 byte[] bufnum = new byte[4];
                 var numv = stream.Read(bufnum, 0, 4);
-                UInt32 numValue = BitConverter.ToUInt32(bufnum);
+                UInt32 numValue = BitConverter.ToUInt32(bufnum,0);
                 byte[] bufv = new byte[Math.Max(numkey, numValue)];
                 stream.Read(bufv, 0, numkey);
                 var strkey = System.Text.Encoding.UTF8.GetString(bufv, 0, numkey);

@@ -12,7 +12,7 @@ namespace RocksDbSharp
 
         public ColumnFamilyOptions SetBlockBasedTableFactory(BlockBasedTableOptions table_options)
         {
-            References.BlockBasedTableFactory = table_options;
+            //References.BlockBasedTableFactory = table_options;
             // Args: table_options
             Native.Instance.rocksdb_options_set_block_based_table_factory(Handle, table_options.Handle);
             return this;

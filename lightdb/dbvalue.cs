@@ -172,25 +172,25 @@ namespace LightDB
                 case Type.Bytes:
                     break;
                 case Type.INT32:
-                    typedvalue = BitConverter.ToInt32(this.value);
+                    typedvalue = BitConverter.ToInt32(this.value,0);
                     break;
                 case Type.UINT32:
-                    typedvalue = BitConverter.ToUInt32(this.value);
+                    typedvalue = BitConverter.ToUInt32(this.value, 0);
                     break;
                 case Type.INT64:
-                    typedvalue = BitConverter.ToInt64(this.value);
+                    typedvalue = BitConverter.ToInt64(this.value, 0);
                     break;
                 case Type.UINT64:
-                    typedvalue = BitConverter.ToUInt64(this.value);
+                    typedvalue = BitConverter.ToUInt64(this.value, 0);
                     break;
                 case Type.BOOL:
                     typedvalue = (this.value[0] > 0);
                     break;
                 case Type.Float32:
-                    typedvalue = BitConverter.ToSingle(this.value);
+                    typedvalue = BitConverter.ToSingle(this.value, 0);
                     break;
                 case Type.Float64:
-                    typedvalue = BitConverter.ToDouble(this.value);
+                    typedvalue = BitConverter.ToDouble(this.value, 0);
                     break;
                 case Type.BigNumber:
                     typedvalue = new System.Numerics.BigInteger(this.value);

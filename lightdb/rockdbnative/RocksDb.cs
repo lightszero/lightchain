@@ -13,72 +13,36 @@ namespace RocksDbSharp
         internal static ReadOptions DefaultReadOptions { get; } = new ReadOptions();
         internal static OptionsHandle DefaultOptions { get; } = new DbOptions();
         internal static Encoding DefaultEncoding => Encoding.UTF8;
-        private Dictionary<string, ColumnFamilyHandleInternal> columnFamilies;
+        //private Dictionary<string, ColumnFamilyHandleInternal> columnFamilies;
 
         // Managed references to unmanaged resources that need to live at least as long as the db
-        internal dynamic References { get; } = new ExpandoObject();
+        //internal dynamic References { get; } = new ExpandoObject();
 
         public IntPtr Handle { get; protected set; }
 
-        private RocksDb(IntPtr handle, dynamic optionsReferences, dynamic cfOptionsRefs, Dictionary<string, ColumnFamilyHandleInternal> columnFamilies = null)
+        public RocksDb(IntPtr handle)
         {
             this.Handle = handle;
-            References.Options = optionsReferences;
-            References.CfOptions = cfOptionsRefs;
-            this.columnFamilies = columnFamilies;
         }
 
         public void Dispose()
         {
-            if (columnFamilies != null)
-            {
-                foreach (var cfh in columnFamilies.Values)
-                    cfh.Dispose();
-            }
+
             Native.Instance.rocksdb_close(Handle);
         }
 
         public static RocksDb Open(OptionsHandle options, string path)
         {
             IntPtr db = Native.Instance.rocksdb_open(options.Handle, path);
-            return new RocksDb(db, optionsReferences: null, cfOptionsRefs: null);
+            return new RocksDb(db);
         }
 
         public static RocksDb OpenReadOnly(OptionsHandle options, string path, bool errorIfLogFileExists)
         {
             IntPtr db = Native.Instance.rocksdb_open_for_read_only(options.Handle, path, errorIfLogFileExists);
-            return new RocksDb(db, optionsReferences: null, cfOptionsRefs: null);
+            return new RocksDb(db);
         }
 
-        public static RocksDb Open(DbOptions options, string path, ColumnFamilies columnFamilies)
-        {
-            string[] cfnames = columnFamilies.Names.ToArray();
-            IntPtr[] cfoptions = columnFamilies.OptionHandles.ToArray();
-            IntPtr[] cfhandles = new IntPtr[cfnames.Length];
-            IntPtr db = Native.Instance.rocksdb_open_column_families(options.Handle, path, cfnames.Length, cfnames, cfoptions, cfhandles);
-            var cfHandleMap = new Dictionary<string, ColumnFamilyHandleInternal>();
-            foreach (var pair in cfnames.Zip(cfhandles.Select(cfh => new ColumnFamilyHandleInternal(cfh)), (name, cfh) => new { Name = name, Handle = cfh }))
-                cfHandleMap.Add(pair.Name, pair.Handle);
-            return new RocksDb(db,
-                optionsReferences: options.References,
-                cfOptionsRefs: columnFamilies.Select(cfd => cfd.Options.References).ToArray(),
-                columnFamilies: cfHandleMap);
-        }
-
-        public static RocksDb OpenReadOnly(DbOptions options, string path, ColumnFamilies columnFamilies, bool errIfLogFileExists)
-        {
-            string[] cfnames = columnFamilies.Names.ToArray();
-            IntPtr[] cfoptions = columnFamilies.OptionHandles.ToArray();
-            IntPtr[] cfhandles = new IntPtr[cfnames.Length];
-            IntPtr db = Native.Instance.rocksdb_open_for_read_only_column_families(options.Handle, path, cfnames.Length, cfnames, cfoptions, cfhandles, errIfLogFileExists);
-            var cfHandleMap = new Dictionary<string, ColumnFamilyHandleInternal>();
-            foreach (var pair in cfnames.Zip(cfhandles.Select(cfh => new ColumnFamilyHandleInternal(cfh)), (name, cfh) => new { Name = name, Handle = cfh }))
-                cfHandleMap.Add(pair.Name, pair.Handle);
-            return new RocksDb(db,
-                optionsReferences: options.References,
-                cfOptionsRefs: columnFamilies.Select(cfd => cfd.Options.References).ToArray(),
-                columnFamilies: cfHandleMap);
-        }
 
         public void SetOptions(IEnumerable<KeyValuePair<string, string>> options)
         {
@@ -153,37 +117,7 @@ namespace RocksDbSharp
         //    return new Snapshot(Handle, snapshotHandle);
         //}
 
-        public static IEnumerable<string> ListColumnFamilies(DbOptions options, string name)
-        {
-            return Native.Instance.rocksdb_list_column_families(options.Handle, name);
-        }
 
-        public ColumnFamilyHandle CreateColumnFamily(ColumnFamilyOptions cfOptions, string name)
-        {
-            var cfh = Native.Instance.rocksdb_create_column_family(Handle, cfOptions.Handle, name);
-            var cfhw = new ColumnFamilyHandleInternal(cfh);
-            columnFamilies.Add(name, cfhw);
-            return cfhw;
-        }
-
-        public void DropColumnFamily(string name)
-        {
-            var cf = GetColumnFamily(name);
-            Native.Instance.rocksdb_drop_column_family(Handle, cf.Handle);
-            columnFamilies.Remove(name);
-        }
-
-        public ColumnFamilyHandle GetDefaultColumnFamily()
-        {
-            return GetColumnFamily(ColumnFamilies.DefaultName);
-        }
-
-        public ColumnFamilyHandle GetColumnFamily(string name)
-        {
-            if (columnFamilies == null)
-                throw new RocksDbSharpException("Database not opened for column families");
-            return columnFamilies[name];
-        }
 
         public string GetProperty(string propertyName)
         {
