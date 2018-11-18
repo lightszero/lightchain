@@ -6,18 +6,130 @@ using System.Linq;
 namespace lightdb.sdk
 {
 
+    public class BaseWebSocketClient
+    {
+        public event OnClientRecv OnRecv;
+        public event OnDisConnect OnDisconnect;
 
+
+        System.Net.WebSockets.ClientWebSocket websocket;
+
+        System.Collections.Concurrent.ConcurrentQueue<byte[]> wantsend
+            = new System.Collections.Concurrent.ConcurrentQueue<byte[]>();
+
+        ulong sendMsgID = 0;
+
+        public async Task Connect(Uri uri)
+        {
+            this.websocket = new System.Net.WebSockets.ClientWebSocket();
+            try
+            {
+                await websocket.ConnectAsync(uri, System.Threading.CancellationToken.None);
+                //peer.OnConnect(websocket);
+            }
+            catch (Exception err)
+            {
+                Console.CursorLeft = 0;
+                Console.WriteLine("error on connect." + err.Message);
+            }
+            //此时调用一个不等待的msgprocessr
+            MessageProcesser();
+            MessageSender();
+
+            return;
+        }
+        public async Task<UInt64> Send(sdk.NetMessage msg)
+        {
+            UInt64 _id = 0;
+            lock (this)
+            {
+                _id = this.sendMsgID;
+                this.sendMsgID++;
+            }
+            msg.Params["_id"] = BitConverter.GetBytes(_id);
+
+            wantsend.Enqueue(msg.ToBytes());
+            return _id;
+        }
+
+        async void MessageSender()
+        {
+            while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
+            {
+                if (wantsend.TryDequeue(out byte[] data))
+                {
+                    ArraySegment<byte> buffer = new ArraySegment<byte>(data);
+                    await websocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Binary, true, System.Threading.CancellationToken.None);
+                }
+                else
+                {
+                    await Task.Delay(1);
+                }
+            }
+        }
+        async void MessageProcesser()
+        {
+            //recv
+            try
+            {
+                using (System.IO.MemoryStream ms = new System.IO.MemoryStream(1024 * 1024))
+                {
+                    byte[] buf = new byte[1024];
+                    ArraySegment<byte> buffer = new ArraySegment<byte>(buf);
+                    while (websocket.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        var _recv = websocket.ReceiveAsync(buffer, System.Threading.CancellationToken.None);
+                        Task.WaitAll(_recv);
+                        var recv = _recv.Result;
+
+                        ms.Write(buf, 0, recv.Count);
+                        if (recv.EndOfMessage)
+                        {
+                            var count = ms.Position;
+                            ms.Position = 0;
+                            var msg = NetMessage.Unpack(ms);
+                            var posend = ms.Position;
+                            if (posend != count)
+                                throw new Exception("error msg.");
+
+                            //重置pos
+                            ms.Position = 0;
+                            await OnRecv(msg);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+                        }
+                        //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                Console.CursorLeft = 0;
+
+                Console.WriteLine("error on recv." + err.Message);
+            }
+            //disconnect
+            try
+            {
+                await this?.OnDisconnect();
+            }
+            catch (Exception err)
+            {
+                Console.CursorLeft = 0;
+
+                Console.WriteLine("error on disconnect." + err.Message);
+            }
+        }
+    }
     public class Client_Snapshot
     {
 
     }
-    public delegate Task OnClientRecv_Unknown(NetMessage msg);
+    public delegate Task OnClientRecv(NetMessage msg);
     public delegate Task OnDisConnect();
     public class Client
     {
         System.Net.WebSockets.ClientWebSocket websocket;
 
-        public event OnClientRecv_Unknown OnRecv_Unknown;
+        public event OnClientRecv OnRecv_Unknown;
         public event OnDisConnect OnDisconnect;
 
         public bool Connected
@@ -212,8 +324,8 @@ namespace lightdb.sdk
         {
             System.Threading.Thread t = new System.Threading.Thread(() =>
               {
-          //recv
-          try
+                  //recv
+                  try
                   {
                       using (System.IO.MemoryStream ms = new System.IO.MemoryStream(1024 * 1024))
                       {
@@ -238,14 +350,14 @@ namespace lightdb.sdk
                                   if (posend != count)
                                       throw new Exception("error msg.");
 
-                          //重置pos
-                          ms.Position = 0;
+                                  //重置pos
+                                  ms.Position = 0;
                                   Console.WriteLine("onrecv");
                                   Task.WaitAll(OnRecv(msg));
-                          //await OnRecv(msg);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
-                      }
-                      //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
-                  }
+                                  //await OnRecv(msg);// .onEvent(httpserver.WebsocketEventType.Recieve, websocket, bytes);
+                              }
+                              //Console.WriteLine("recv=" + recv.Count + " end=" + recv.EndOfMessage);
+                          }
                       }
                   }
                   catch (Exception err)
@@ -254,8 +366,8 @@ namespace lightdb.sdk
 
                       Console.WriteLine("error on recv." + err.Message);
                   }
-          //disconnect
-          try
+                  //disconnect
+                  try
                   {
                       Task.WaitAll(this?.OnDisconnect());
                   }
