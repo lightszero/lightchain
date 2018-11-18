@@ -11,6 +11,10 @@ namespace lightdb.testclient
 
         static void Main(string[] args)
         {
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+              {
+                  Console.WriteLine("error on ============>" + e.ToString());
+              };
             StartClient();
             Loops();
         }
@@ -31,15 +35,32 @@ namespace lightdb.testclient
                 }
                 if (line == "p")
                 {
-                    await ping();
+                    try
+                    {
+                        await ping();
+                        //Task.WaitAll(ping());
+                    }
+                    catch (Exception err)
+                    {
+                        Console.WriteLine("error on ping.");
+                    }
                     continue;
                 }
             }
         }
         static async Task ping()
         {
-            var pingms = await client.Ping();
-            Console.WriteLine("ping=" + pingms);
+
+            try
+            {
+                var pingms = await client.Ping();
+                Console.WriteLine("ping=" + pingms);
+
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("error client. ping.");
+            }
         }
         static async void StartClient()
         {
