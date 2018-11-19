@@ -33,7 +33,8 @@ namespace LightDB
     {
         public TableIterator(SnapShot snapshot, byte[] _tableid, byte[] _beginkeyfinal, byte[] _endkeyfinal)
         {
-            this.it = snapshot.db.NewIterator(null, snapshot.readop);
+            this.itPtr = RocksDbSharp.Native.Instance.rocksdb_create_iterator(snapshot.dbPtr, snapshot.readop.Handle);
+            //this.it = snapshot.db.NewIterator(null, snapshot.readop);
             this.tableid = _tableid;
             this.beginkeyfinal = _beginkeyfinal;
             this.endkeyfinal = _endkeyfinal;
@@ -41,7 +42,8 @@ namespace LightDB
 
         }
         bool bInit = false;
-        RocksDbSharp.Iterator it;
+        IntPtr itPtr;
+        //RocksDbSharp.Iterator it;
         byte[] tableid;
         byte[] beginkeyfinal;
         byte[] endkeyfinal;
@@ -50,7 +52,11 @@ namespace LightDB
             get
             {
                 if (this.Vaild)
-                    return it.Key().Skip(this.tableid.Length + 2).ToArray();
+                {
+                    var key = RocksDbSharp.Native.Instance.rocksdb_iter_key(itPtr);
+                    return key.Skip(this.tableid.Length + 2).ToArray();
+                    //return it.Key().Skip(this.tableid.Length + 2).ToArray();
+                }
                 else
                     return null;
             }
@@ -85,29 +91,38 @@ namespace LightDB
             if (bInit == false)
             {
                 bInit = true;
-                it.Seek(beginkeyfinal);
+                RocksDbSharp.Native.Instance.rocksdb_iter_seek(itPtr, beginkeyfinal, (ulong)beginkeyfinal.Length);
+
+                // it.Seek(beginkeyfinal);
             }
             else
             {
-                it.Next();
+                RocksDbSharp.Native.Instance.rocksdb_iter_next(itPtr);
+
+                //it.Next();
             }
-            if (it.Valid() == false)
+            if (RocksDbSharp.Native.Instance.rocksdb_iter_valid(itPtr) == false)
                 return false;
-            this.Vaild = TestVaild(it.Key());
+            var key = RocksDbSharp.Native.Instance.rocksdb_iter_key(itPtr);
+            this.Vaild = TestVaild(key);
             return this.Vaild;
         }
 
         public void Reset()
         {
-            it.Seek(beginkeyfinal);
+            RocksDbSharp.Native.Instance.rocksdb_iter_seek(itPtr, beginkeyfinal, (ulong)beginkeyfinal.Length);
+
+            //it.Seek(beginkeyfinal);
             bInit = false;
             this.Vaild = false;
         }
 
         public void Dispose()
         {
-            it.Dispose();
-            it = null;
+            RocksDbSharp.Native.Instance.rocksdb_iter_destroy(this.itPtr);
+            this.itPtr = IntPtr.Zero;
+            //it.Dispose();
+            //it = null;
         }
     }
 

@@ -13,16 +13,17 @@ namespace LightDB
         public string MagicStr;//设定一个魔法字符串，作为数据库的创建字符串
         public WriteTask FirstTask;//初始化数据库时要同时完成的任务
     }
-    public class LightDB
+    public class LightDB:IDisposable
     {
         public Version Version => typeof(LightDB).Assembly.GetName().Version;
 
 
-        RocksDbSharp.RocksDb db;
+        //RocksDbSharp.RocksDb db;
+        IntPtr dbPtr;
         IntPtr defaultWriteOpPtr;
         public void Open(string path, DBCreateOption createOption = null)
         {
-            if (db != null)
+            if (dbPtr != IntPtr.Zero)
                 throw new Exception("already open a db.");
             this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
 
@@ -33,7 +34,7 @@ namespace LightDB
             //option.SetCreateIfMissing(true);
             //option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
             IntPtr handleDB = RocksDbSharp.Native.Instance.rocksdb_open(HandleOption, path);
-            this.db = new RocksDbSharp.RocksDb(handleDB);
+            this.dbPtr = handleDB;
 
             snapshotLast = CreateSnapInfo();
             if (snapshotLast.DataHeight == 0)
@@ -44,13 +45,21 @@ namespace LightDB
         }
         public void OpenRead(string path)
         {
-            if (db != null)
+            if (dbPtr != IntPtr.Zero)
                 throw new Exception("already open a db.");
             this.defaultWriteOpPtr = RocksDbSharp.Native.Instance.rocksdb_writeoptions_create();
-            RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
-            option.SetCreateIfMissing(false);
-            option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
-            this.db = RocksDbSharp.RocksDb.OpenReadOnly(option, path, true);
+
+            var HandleOption = RocksDbSharp.Native.Instance.rocksdb_options_create();
+            RocksDbSharp.Native.Instance.rocksdb_options_set_create_if_missing(HandleOption, true);
+            RocksDbSharp.Native.Instance.rocksdb_options_set_compression(HandleOption, RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
+
+            //RocksDbSharp.DbOptions option = new RocksDbSharp.DbOptions();
+            //option.SetCreateIfMissing(false);
+            //option.SetCompression(RocksDbSharp.CompressionTypeEnum.rocksdb_snappy_compression);
+            //this.db = RocksDbSharp.RocksDb.OpenReadOnly(option, path, true);
+            bool errorIfLogFileExists = true;
+            IntPtr db = RocksDbSharp.Native.Instance.rocksdb_open_for_read_only(HandleOption, path, errorIfLogFileExists);
+            this.dbPtr = db;
 
             snapshotLast = CreateSnapInfo();
             snapshotLast.AddRef();
@@ -59,7 +68,7 @@ namespace LightDB
         public void CheckPoint(string path)
         {
             IntPtr cp =
-           RocksDbSharp.Native.Instance.rocksdb_checkpoint_object_create(db.Handle);
+           RocksDbSharp.Native.Instance.rocksdb_checkpoint_object_create(dbPtr);
 
             RocksDbSharp.Native.Instance.rocksdb_checkpoint_create(cp, path, 1024 * 1024 * 4);
 
@@ -95,10 +104,14 @@ namespace LightDB
         {
 
         }
+        public void Dispose()
+        {
+            RocksDbSharp.Native.Instance.rocksdb_close(this.dbPtr);
+            this.dbPtr = IntPtr.Zero;
+        }
         public void Close()
         {
-            this.db.Dispose();
-            this.db = null;
+            this.Dispose();
         }
         private SnapShot snapshotLast;
 
@@ -114,7 +127,7 @@ namespace LightDB
         private SnapShot CreateSnapInfo()
         {
             //看最新高度的快照是否已经产生
-            var snapshot = new SnapShot(this.db);
+            var snapshot = new SnapShot(this.dbPtr);
             snapshot.Init();
             return snapshot;
         }
@@ -130,7 +143,7 @@ namespace LightDB
         {
             lock (systemtable_block)
             {
-                using (var wb = new WriteBatch(this.db.Handle, snapshotLast))
+                using (var wb = new WriteBatch(this.dbPtr, snapshotLast))
                 {
                     var heightbuf = BitConverter.GetBytes(snapshotLast.DataHeight);
                     foreach (var item in task.items)
@@ -170,7 +183,7 @@ namespace LightDB
                     DBValue.QuickFixHeight(finalheight, heightbuf);
                     wb.PutUnsafe(systemtable_info, "_height".ToBytes_UTF8Encode(), finalheight);
 
-                    RocksDbSharp.Native.Instance.rocksdb_write(this.db.Handle, this.defaultWriteOpPtr, wb.batchptr);
+                    RocksDbSharp.Native.Instance.rocksdb_write(this.dbPtr, this.defaultWriteOpPtr, wb.batchptr);
                     //this.db.Write(wb.batch);
                     snapshotLast.Dispose();
                     snapshotLast = CreateSnapInfo();
