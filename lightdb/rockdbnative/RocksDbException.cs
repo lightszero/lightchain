@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace RocksDbSharp
 {
-    public class RocksDbException : RocksDbSharpException
+    public class RocksDbException : Exception
     {
         public RocksDbException(IntPtr errptr)
             : base(Marshal.PtrToStringAnsi(errptr))

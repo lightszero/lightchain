@@ -14,7 +14,7 @@ namespace RocksDbSharp
         static Native()
         {
             if (RuntimeInformation.ProcessArchitecture == Architecture.X86 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                throw new RocksDbSharpException("Rocksdb on windows is not supported for 32 bit applications");
+                throw new Exception("Rocksdb on windows is not supported for 32 bit applications");
             Instance = NativeImport.Auto.Import<Native>("rocksdb", "5.17.0", true);
         }
 
