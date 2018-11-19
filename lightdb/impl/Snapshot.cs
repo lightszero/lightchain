@@ -72,7 +72,7 @@ namespace LightDB
         public byte[] GetValueData(byte[] tableid, byte[] key)
         {
             byte[] finialkey = Helper.CalcKey(tableid, key);
-            return Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, finialkey, finialkey.LongLength, null);
+            return Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, finialkey);
             //(readOptions ?? DefaultReadOptions).Handle, key, keyLength, cf);
 
             //return this.db.Get(finialkey, null, readop);
@@ -95,7 +95,7 @@ namespace LightDB
         public TableInfo GetTableInfo(byte[] tableid)
         {
             var tablekey = Helper.CalcKey(tableid, null, SplitWord.TableInfo);
-            var data = Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, tablekey, tablekey.LongLength, null);
+            var data = Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, tablekey);
             if (data == null)
                 return null;
             return TableInfo.FromRaw(DBValue.FromRaw(data).value);
@@ -103,7 +103,7 @@ namespace LightDB
         public uint GetTableCount(byte[] tableid)
         {
             var tablekey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
-            var data = Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, tablekey, tablekey.LongLength, null);
+            var data = Native.Instance.rocksdb_get(this.dbPtr, this.readop.Handle, tablekey);
             return DBValue.FromRaw(data).AsUInt32();
         }
     }

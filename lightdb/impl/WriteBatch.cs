@@ -43,7 +43,7 @@ namespace LightDB
             }
             else
             {
-                var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshot.readop.Handle, finalkey, finalkey.Length);
+                var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshot.readop.Handle, finalkey);
                 //db.Get(finalkey, null, snapshot.readop);
                 cache[hexkey] = data;
                 return data;
