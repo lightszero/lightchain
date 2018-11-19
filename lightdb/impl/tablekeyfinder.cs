@@ -33,7 +33,7 @@ namespace LightDB
     {
         public TableIterator(SnapShot snapshot, byte[] _tableid, byte[] _beginkeyfinal, byte[] _endkeyfinal)
         {
-            this.itPtr = RocksDbSharp.Native.Instance.rocksdb_create_iterator(snapshot.dbPtr, snapshot.readop.Handle);
+            this.itPtr = RocksDbSharp.Native.Instance.rocksdb_create_iterator(snapshot.dbPtr, snapshot.readopHandle);
             //this.it = snapshot.db.NewIterator(null, snapshot.readop);
             this.tableid = _tableid;
             this.beginkeyfinal = _beginkeyfinal;

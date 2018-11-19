@@ -148,7 +148,8 @@ namespace RocksDbSharp
             var resultPtr = rocksdb_get(db, read_options, key, sklength, out UIntPtr valLength, out IntPtr errptr);
             long valueLength = (long)valLength;
             var result = new byte[valueLength];
-            Marshal.Copy(resultPtr, result, 0, (int)valueLength);
+            if (valueLength > 0)
+                Marshal.Copy(resultPtr, result, 0, (int)valueLength);
             if (errptr != IntPtr.Zero)
                 throw new RocksDbException(errptr);
 

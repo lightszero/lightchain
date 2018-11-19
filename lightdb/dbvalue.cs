@@ -32,6 +32,29 @@ namespace LightDB
         {
 
         }
+        public static bool BytesEqualWithoutHeight(byte[] a,byte[] b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+            if (a == null && b == null)
+                return true;
+            if (a.Length != b.Length)
+                return false;
+            if (a == null || b == null)
+                return false;
+
+            var tagLength = a[1];
+            for (var i=0;i<a.Length;i++)
+            {
+                if (a[i] != b[i])
+                    return false;
+                if(i>=tagLength+2&& i<tagLength+2+8)
+                {
+                    continue;
+                }
+            }
+            return true;
+        }
         public static void QuickFixHeight(byte[] data,byte[] heightbuf)
         {
             //var v = data[0];

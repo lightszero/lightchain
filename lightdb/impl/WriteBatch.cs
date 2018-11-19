@@ -43,7 +43,9 @@ namespace LightDB
             }
             else
             {
-                var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshot.readop.Handle, finalkey);
+                var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshot.readopHandle, finalkey);
+                if (data == null || data.Length == 0)
+                    return null;
                 //db.Get(finalkey, null, snapshot.readop);
                 cache[hexkey] = data;
                 return data;
@@ -87,7 +89,10 @@ namespace LightDB
             }
             //var value = DBValue.FromValue(DBValue.Type.Bytes, infodata);
             PutDataFinal(finalkey, finaldata);
-            PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0).ToBytes());
+            DBValue count = DBValue.FromRaw(GetDataFinal(countkey));
+            if (count == null)
+                count = DBValue.FromValue(DBValue.Type.UINT32, (UInt32)0);
+            PutDataFinal(countkey, count.ToBytes());
         }
         public void DeleteTable(byte[] tableid, bool makeTag = false)
         {
@@ -130,6 +135,11 @@ namespace LightDB
             if (vdata == null || vdata[0] == (byte)DBValue.Type.Deleted)
             {
                 count++;
+            }
+            else
+            {
+                if (DBValue.BytesEqualWithoutHeight(vdata, finaldata) == false)
+                    count++;
             }
             PutDataFinal(finalkey, finaldata);
             PutDataFinal(countkey, DBValue.FromValue(DBValue.Type.UINT32, count).ToBytes());
